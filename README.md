@@ -12,7 +12,7 @@
 
 **Pororo Vocab Battle** là website học từ vựng tiếng Anh theo hình thức thi đấu 1v1. Người chơi có thể lựa chọn kho từ, số lượng câu hỏi và loại phòng trước khi bước vào trận đấu mô phỏng với hệ thống HP, điểm số và bộ đếm thời gian.
 
-Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằng HTML, CSS, JavaScript thuần và Bootstrap 5. Dự án phù hợp để trình bày trong portfolio/CV và tiếp tục phát triển thành ứng dụng realtime với ASP.NET Core, SQL Server và SignalR.
+Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằng HTML, CSS, JavaScript thuần và Bootstrap 5. Sau này sẽ tiếp tục phát triển thành ứng dụng realtime với ASP.NET Core, SQL Server và SignalR.
 
 > **Trạng thái:** Frontend hoàn chỉnh · Backend đang trong kế hoạch triển khai
 
