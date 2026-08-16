@@ -536,6 +536,16 @@ a { color: inherit; }
 }
 
 .form-control::placeholder { color: #64748b; }
+
+.form-control:disabled {
+  color: #cbd5e1;
+  -webkit-text-fill-color: #cbd5e1;
+  opacity: 1;
+  cursor: not-allowed;
+  border-color: rgba(255,255,255,.12);
+  background-color: rgba(8,11,24,.72);
+}
+
 .form-select option { color: #111827; }
 
 #wordModal .form-select,
@@ -563,6 +573,20 @@ a { color: inherit; }
 }
 
 .profile-avatar-wrap { margin-top: -42px; }
+
+.profile-page .glass-card {
+  height: auto;
+}
+
+.profile-summary-card {
+  position: static;
+}
+
+.profile-content-stack {
+  display: grid;
+  gap: 1.5rem;
+  align-content: start;
+}
 
 .table-vb { --bs-table-bg: transparent; --bs-table-color: #e5e7eb; }
 .table-vb > :not(caption) > * > * { padding: 1rem; border-bottom-color: var(--vb-border); }
