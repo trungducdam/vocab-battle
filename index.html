@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Vocab Battle - Game từ vựng tiếng Anh 1v1 cùng Pororo. Thi đấu thời gian thực, luyện phản xạ và ghi nhớ từ mới.">
+  <title>Vocab Battle - Game từ vựng tiếng Anh 1v1</title>
+  <link rel="icon" type="image/jpeg" href="assets/images/pororo.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="assets/css/main.css" rel="stylesheet">
+</head>
+<body data-page="home">
+  <header id="siteNav"></header>
+  <main class="site-main">
+    <section class="hero">
+      <div class="container position-relative">
+        <div class="row g-5 align-items-center">
+          <div class="col-lg-5">
+            <span class="eyebrow"><i class="bi bi-broadcast"></i> Đấu từ vựng thời gian thực</span>
+            <h1 class="hero-title">Vocab Battle.<br><span class="gradient-text">Học vui cùng Pororo.</span></h1>
+            <p class="hero-copy">Chọn chế độ, vào phòng và bắt đầu trận đấu 1v1 chỉ trong vài giây.</p>
+            <div class="pororo-hero" style="width:min(175px,45vw);margin-left:0"><img src="assets/images/pororo.jpg" alt="Pororo đồng hành cùng người học từ vựng"></div>
+          </div>
+          <div class="col-lg-7">
+            <section class="battle-launcher" aria-labelledby="battleLauncherTitle">
+              <div class="d-flex justify-content-between align-items-start gap-3 mb-4"><div><span class="eyebrow">Đấu trường 1v1</span><h2 class="h3 fw-bold mt-2 mb-1" id="battleLauncherTitle">Tạo trận đấu</h2><p class="text-muted-vb mb-0">Chọn số câu rồi vào phòng public hoặc private.</p></div><i class="bi bi-controller fs-1 text-info"></i></div>
+              <p class="form-label mb-2">Số câu thi đấu</p>
+              <div class="row g-2 mb-3" id="homeModeOptions">
+                <div class="col-4 mode-option"><input type="radio" name="homeMode" id="mode10" value="10" checked><label for="mode10">10 câu<small>Trận nhanh</small></label></div>
+                <div class="col-4 mode-option"><input type="radio" name="homeMode" id="mode50" value="50"><label for="mode50">50 câu<small>Tiêu chuẩn</small></label></div>
+                <div class="col-4 mode-option"><input type="radio" name="homeMode" id="mode100" value="100"><label for="mode100">100 câu<small>Thử thách</small></label></div>
+              </div>
+              <p class="form-label mb-2">Nguồn câu hỏi</p>
+              <div class="row g-2 mb-3">
+                <div class="col-6 mode-option"><input type="radio" name="homeBank" id="homeBankPublic" value="public" checked><label for="homeBankPublic"><i class="bi bi-globe2 me-1"></i>Từ vựng chung<small>Kho A1-C1 của web</small></label></div>
+                <div class="col-6 mode-option"><input type="radio" name="homeBank" id="homeBankPersonal" value="personal"><label for="homeBankPersonal"><i class="bi bi-folder2-open me-1"></i>Từ vựng riêng<small id="homePersonalCount">Chưa có bộ từ</small></label></div>
+              </div>
+              <div class="battle-summary mb-4" id="modeSummary"><span>❤️ 100 HP</span><span>⚔️ 20 sát thương</span><span>⭐ 100 điểm/câu</span></div>
+              <div class="row g-3">
+                <div class="col-md-6"><button class="match-type-btn" id="publicMatch"><span class="match-type-icon"><i class="bi bi-globe2"></i></span><span><strong class="d-block">Phòng public</strong><small class="text-muted-vb">Ghép đối thủ tự động</small></span></button></div>
+                <div class="col-md-6"><button class="match-type-btn" id="privateMatch"><span class="match-type-icon"><i class="bi bi-lock"></i></span><span><strong class="d-block">Phòng private</strong><small class="text-muted-vb">Tạo hoặc nhập mã phòng</small></span></button></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-space" id="features">
+      <div class="container">
+        <div class="row align-items-end mb-4">
+          <div class="col-lg-7"><h2 class="section-title">Học chủ động, nhớ lâu hơn</h2></div>
+          <div class="col-lg-5"><p class="text-muted-vb mb-0">Một trải nghiệm học có mục tiêu, phản hồi tức thì và đủ cạnh tranh để bạn muốn quay lại mỗi ngày.</p></div>
+        </div>
+        <div class="row g-4">
+          <div class="col-md-4"><article class="glass-card"><div class="feature-icon"><i class="bi bi-lightning-charge"></i></div><h4>Đấu realtime</h4><p class="text-muted-vb mb-0">Hai người nhận cùng câu hỏi, trả lời trong 10 giây và theo dõi HP thay đổi tức thì.</p></article></div>
+          <div class="col-md-4"><article class="glass-card"><div class="feature-icon"><i class="bi bi-graph-up-arrow"></i></div><h4>Elo minh bạch</h4><p class="text-muted-vb mb-0">Mỗi chiến thắng đều có giá trị. Theo dõi tiến bộ và cạnh tranh công bằng theo kỹ năng.</p></article></div>
+          <div class="col-md-4"><article class="glass-card"><div class="feature-icon"><i class="bi bi-book"></i></div><h4>Kho từ có cấp độ</h4><p class="text-muted-vb mb-0">Lọc từ theo độ khó và chủ đề để ôn tập đúng vùng kiến thức còn yếu.</p></article></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-space pt-0">
+      <div class="container">
+        <div class="row g-4 align-items-stretch">
+          <div class="col-lg-7">
+            <div class="cta-panel h-100 d-flex flex-column justify-content-center">
+              <span class="eyebrow align-self-start">Sẵn sàng chưa?</span>
+              <h2 class="section-title mt-3">Bước vào đấu trường trong chưa đầy một phút.</h2>
+              <p class="text-muted-vb">Tạo phòng, chia sẻ mã với bạn bè và bắt đầu trận chiến từ vựng đầu tiên.</p>
+              <div><a class="btn btn-vb btn-lg rounded-pill px-4" href="register.html">Tạo tài khoản miễn phí</a></div>
+            </div>
+          </div>
+          <div class="col-lg-5">
+            <div class="glass-card">
+              <div class="d-flex justify-content-between align-items-center mb-2"><h4 class="mb-0">Top người chơi</h4><a class="small text-decoration-none text-info" href="leaderboard.html">Xem tất cả</a></div>
+              <div class="rank-row"><div class="rank-number text-warning">1</div><div class="avatar">PB</div><div class="flex-grow-1"><strong>PororoBot</strong><div class="small text-muted-vb">42 trận thắng</div></div><strong>1,842</strong></div>
+              <div class="rank-row"><div class="rank-number">2</div><div class="avatar" style="--avatar-a:#ec4899;--avatar-b:#f59e0b">CB</div><div class="flex-grow-1"><strong>CrongBot</strong><div class="small text-muted-vb">38 trận thắng</div></div><strong>1,790</strong></div>
+              <div class="rank-row"><div class="rank-number">3</div><div class="avatar" style="--avatar-a:#10b981;--avatar-b:#06b6d4">EB</div><div class="flex-grow-1"><strong>EddyBot</strong><div class="small text-muted-vb">34 trận thắng</div></div><strong>1,728</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div id="siteFooter"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/vocabulary-data.js"></script>
+  <script src="assets/js/vocabulary-examples.js"></script>
+  <script src="assets/js/word-bank.js"></script>
+  <script src="assets/js/battle-config.js"></script>
+  <script src="assets/js/home.js"></script>
+</body>
+</html>
