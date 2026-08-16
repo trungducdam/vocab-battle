@@ -24,9 +24,7 @@ Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằn
 - [Tài khoản và dữ liệu demo](#tài-khoản-và-dữ-liệu-demo)
 - [Luồng trải nghiệm](#luồng-trải-nghiệm)
 - [Cấu trúc thư mục](#cấu-trúc-thư-mục)
-- [Triển khai bằng GitHub Pages](#triển-khai-bằng-github-pages)
 - [Giới hạn của phiên bản frontend](#giới-hạn-của-phiên-bản-frontend)
-- [Lộ trình backend](#lộ-trình-backend)
 
 ## Tính năng nổi bật
 
@@ -168,23 +166,6 @@ vocab-battle-frontend/
         └── idiom-data.js       # 100 idioms
 ```
 
-## Triển khai bằng GitHub Pages
-
-Repository phải có `index.html` ở thư mục gốc.
-
-1. Đưa toàn bộ nội dung thư mục `vocab-battle-frontend` lên repository.
-2. Trên GitHub, mở **Settings → Pages**.
-3. Trong **Build and deployment**, chọn **Deploy from a branch**.
-4. Chọn branch `main` và thư mục `/ (root)`.
-5. Nhấn **Save** và chờ GitHub tạo đường dẫn website.
-
-Sau khi triển khai, có thể thêm đường dẫn vào đầu README:
-
-```md
-## Live Demo
-
-[Trải nghiệm Pororo Vocab Battle](https://<username>.github.io/<repository>/)
-```
 
 ## Giới hạn của phiên bản frontend
 
@@ -200,18 +181,6 @@ Sau khi triển khai, có thể thêm đường dẫn vào đầu README:
 
 Không lưu token production, role hoặc đáp án đúng trong `localStorage`. Các dữ liệu quan trọng phải được backend kiểm tra và quyết định.
 
-## Lộ trình backend
-
-Backend dự kiến sử dụng:
-
-- .NET 10 LTS và ASP.NET Core Web API.
-- Entity Framework Core và SQL Server.
-- ASP.NET Core Identity cho Admin/User.
-- OTP email, Google OAuth và Facebook OAuth.
-- SignalR cho matchmaking, phòng chờ và trận đấu realtime.
-- API quản lý kho chung, kho riêng, upload DOCX/PDF và leaderboard.
-- Server chịu trách nhiệm sinh câu hỏi, tính HP, điểm, kết quả và Elo.
-- Unit test, integration test, rate limiting và health check.
 
 ## Định hướng phát triển tiếp theo
 
@@ -225,13 +194,3 @@ Backend dự kiến sử dụng:
 - [ ] Kết nối Google/Facebook OAuth.
 - [ ] Xây dựng matchmaking và SignalR BattleHub.
 - [ ] Viết automated tests và triển khai production.
-
-## Lưu ý về hình ảnh thương hiệu
-
-Pororo và các hình ảnh liên quan thuộc quyền sở hữu của chủ sở hữu tương ứng. Hình ảnh trong repository này chỉ được sử dụng cho mục đích học tập và minh họa dự án phi thương mại. Hãy thay bằng tài sản có quyền sử dụng phù hợp trước khi triển khai thương mại.
-
-## Tác giả
-
-Dự án được phát triển cho mục đích học tập, thực hành frontend và xây dựng portfolio cá nhân.
-
-Nếu bạn thấy dự án hữu ích, hãy để lại một ⭐ trên GitHub.
