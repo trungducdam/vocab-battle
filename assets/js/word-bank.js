@@ -1,32 +1,55 @@
 function getPublicVocabulary() {
-  const current = JSON.parse(localStorage.getItem("vb_words_v3") || "null");
-  const seedByKey = new Map(vocabularySeed.map(item => [`${item.level}|${item.word}`.toLowerCase(), item]));
+  const storageKey = "vb_words_v5";
+  const wordKey = item => item.sourceKey || `${item.level}|${item.word}`.toLowerCase();
+  const current = JSON.parse(localStorage.getItem(storageKey) || "null");
+  const seedByKey = new Map(vocabularySeed.map(item => [wordKey(item), item]));
   if (Array.isArray(current)) {
     const hydrated = current.map(item => {
-      const seed = seedByKey.get(`${item.level}|${item.word}`.toLowerCase());
-      return { ...seed, ...item, example: item.example || seed?.example || "" };
+      const seed = seedByKey.get(wordKey(item));
+      return {
+        ...seed,
+        ...item,
+        example: item.example || seed?.example || "",
+        collocation: item.collocation || seed?.collocation || ""
+      };
     });
-    localStorage.setItem("vb_words_v3", JSON.stringify(hydrated));
+    localStorage.setItem(storageKey, JSON.stringify(hydrated));
     return hydrated;
   }
 
+  const previousV4 = JSON.parse(localStorage.getItem("vb_words_v4") || "null");
+  const previousV3 = JSON.parse(localStorage.getItem("vb_words_v3") || "null");
   const legacy = JSON.parse(localStorage.getItem("vb_words_v2") || "null");
-  const savedWords = Array.isArray(legacy) ? legacy : vocabularySeed;
+  const savedWords = Array.isArray(previousV4)
+    ? previousV4
+    : Array.isArray(previousV3)
+      ? previousV3
+      : Array.isArray(legacy)
+        ? legacy
+        : [];
   const merged = savedWords.map(item => {
-    const seed = seedByKey.get(`${item.level}|${item.word}`.toLowerCase());
-    return { ...seed, ...item, example: item.example || seed?.example || "" };
+    const seed = seedByKey.get(wordKey(item));
+    return {
+      ...seed,
+      ...item,
+      example: item.example || seed?.example || "",
+      collocation: item.collocation || seed?.collocation || ""
+    };
   });
-  const existingKeys = new Set(merged.map(item => `${item.level}|${item.word}`.toLowerCase()));
-  vocabularySeed.forEach(item => {
-    const key = `${item.level}|${item.word}`.toLowerCase();
+  const existingKeys = new Set(merged.map(wordKey));
+  const seedAdditions = Array.isArray(previousV4)
+    ? vocabularySeed.filter(item => Number(item.seedVersion || 0) >= 5)
+    : vocabularySeed;
+  seedAdditions.forEach(item => {
+    const key = wordKey(item);
     if (!existingKeys.has(key)) merged.push({ ...item });
   });
-  localStorage.setItem("vb_words_v3", JSON.stringify(merged));
+  localStorage.setItem(storageKey, JSON.stringify(merged));
   return merged;
 }
 
 function savePublicVocabulary(words) {
-  localStorage.setItem("vb_words_v3", JSON.stringify(words));
+  localStorage.setItem("vb_words_v5", JSON.stringify(words));
 }
 
 function getPublicIdioms() {

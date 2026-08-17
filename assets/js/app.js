@@ -123,6 +123,7 @@ const VB = {
     const navItems = [
       ["home", "index.html", "Trang chủ"],
       ["vocabulary", "vocabulary.html", "Từ vựng"],
+      ["practice", "practice.html", "Luyện tập"],
       ["room", "room.html", "Đấu trường"],
       ["leaderboard", "leaderboard.html", "Xếp hạng"]
     ];

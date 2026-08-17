@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const query = search.value.trim().toLowerCase();
     const selectedLevel = activeBank === "public" ? level.value : "";
     const filtered = words.filter(item =>
-      (!query || `${item.word} ${item.meaning} ${item.example || ""}`.toLowerCase().includes(query)) &&
+      (!query || `${item.word} ${item.meaning} ${item.example || ""} ${item.collocation || ""} ${item.topic || ""}`.toLowerCase().includes(query)) &&
       (!selectedLevel || String(item.level) === selectedLevel)
     );
     const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -89,7 +89,9 @@ document.addEventListener("DOMContentLoaded", () => {
     resultCount.textContent = `${filtered.length} ${idiomMode ? "idiom" : "từ"} ${bankLabel}${selectedLevel ? ` · CEFR ${selectedLevel}` : ""}`;
 
     list.innerHTML = visibleWords.length ? visibleWords.map(item => {
-      const hasExample = Boolean(String(item.example || "").trim());
+      const usageText = String(item.example || item.collocation || "").trim();
+      const usageLabel = item.example ? "Ví dụ" : "Collocation";
+      const hasUsage = Boolean(usageText);
       const detailId = `word-example-${activeBank}-${String(item.id).replace(/[^a-zA-Z0-9_-]/g, "-")}`;
       const icon = activeBank === "personal" ? "bi-folder2-open" : idiomMode ? "bi-chat-quote" : "bi-translate";
       const summary = `
@@ -100,18 +102,19 @@ document.addEventListener("DOMContentLoaded", () => {
               <h5 class="mb-0">${escapeHtml(item.word)}</h5>
               ${idiomMode ? "" : `<span class="badge badge-soft-primary">CEFR ${escapeHtml(item.level || "A1")}</span>`}
               <span class="badge badge-soft-success">${escapeHtml(item.category || item.partOfSpeech || "Từ vựng")}</span>
+              ${item.topic ? `<span class="badge practice-topic-badge">${escapeHtml(item.topic)}</span>` : ""}
             </div>
             <p class="text-muted-vb mb-0 mt-1">${escapeHtml(item.meaning)}</p>
           </div>
-          ${hasExample ? '<i class="bi bi-chevron-down word-toggle-icon" aria-hidden="true"></i>' : ""}
+          ${hasUsage ? '<i class="bi bi-chevron-down word-toggle-icon" aria-hidden="true"></i>' : ""}
         </div>`;
       return `
         <div class="word-list-item" data-id="${escapeHtml(item.id)}">
           <div class="word-list-summary d-flex align-items-center gap-2">
-            ${hasExample ? `<button class="word-toggle flex-grow-1" type="button" aria-expanded="false" aria-controls="${detailId}">${summary}</button>` : `<div class="word-toggle-static flex-grow-1">${summary}</div>`}
+            ${hasUsage ? `<button class="word-toggle flex-grow-1" type="button" aria-expanded="false" aria-controls="${detailId}">${summary}</button>` : `<div class="word-toggle-static flex-grow-1">${summary}</div>`}
             ${canEditCurrentBank() ? `<div class="d-flex gap-2"><button class="btn btn-sm btn-outline-vb edit-word" aria-label="Sửa ${escapeHtml(item.word)}"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger delete-word" aria-label="Xóa ${escapeHtml(item.word)}"><i class="bi bi-trash"></i></button></div>` : ""}
           </div>
-          ${hasExample ? `<div class="word-example" id="${detailId}" hidden><div class="word-example-label"><i class="bi bi-lightbulb me-2"></i>Ví dụ</div><p class="mb-0">${escapeHtml(item.example)}</p></div>` : ""}
+          ${hasUsage ? `<div class="word-example" id="${detailId}" hidden><div class="word-example-label"><i class="bi bi-lightbulb me-2"></i>${usageLabel}</div><p class="mb-0">${escapeHtml(usageText)}</p></div>` : ""}
         </div>`;
     }).join("") : `<div class="text-center py-5 text-muted-vb"><i class="bi bi-${activeBank === "personal" ? "folder-plus" : idiomMode ? "chat-quote" : "search"} fs-1"></i><p class="mt-2">${activeBank === "personal" ? "Kho riêng chưa có từ. Hãy tải DOCX/PDF hoặc thêm thủ công." : idiomMode ? "Không tìm thấy idiom phù hợp." : "Không tìm thấy từ phù hợp."}</p></div>`;
 

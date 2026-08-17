@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Luyện toàn bộ từ vựng theo bậc CEFR A1-C2 hoặc 26 chủ đề IELTS Band 7+ cùng Pororo.">
+  <title>Luyện tập CEFR và IELTS theo chủ đề | Vocab Battle</title>
+  <link rel="icon" type="image/jpeg" href="assets/images/pororo.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="assets/css/main.css" rel="stylesheet">
+</head>
+<body data-page="practice">
+  <header id="siteNav"></header>
+  <main class="site-main practice-page">
+    <section class="page-hero" id="practiceIntro">
+      <div class="container">
+        <span class="eyebrow"><i class="bi bi-mortarboard-fill"></i> Luyện tập không giới hạn thời gian</span>
+        <div class="row align-items-end g-4 mt-1">
+          <div class="col-lg-8">
+            <h1 class="section-title mb-2">Luyện từ vựng theo bậc hoặc chủ đề</h1>
+            <p class="text-muted-vb mb-0">Chọn bậc CEFR hoặc một chủ đề IELTS Band 7+ để ôn lần lượt toàn bộ từ. Mỗi mục chỉ xuất hiện một lần trong phiên luyện.</p>
+          </div>
+          <div class="col-lg-4 text-lg-end">
+            <a class="btn btn-outline-vb rounded-pill px-4" href="vocabulary.html"><i class="bi bi-journal-text me-2"></i>Mở kho từ vựng</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pb-5" id="practiceLevelSection">
+      <div class="container">
+        <div class="practice-section-heading">
+          <div>
+            <span class="eyebrow"><i class="bi bi-bar-chart-steps"></i> Theo trình độ</span>
+            <h2 class="h3 mt-2 mb-1">Bậc CEFR</h2>
+            <p class="text-muted-vb mb-0">Luyện tất cả từ đang có trong từng bậc.</p>
+          </div>
+        </div>
+        <div class="practice-level-grid" id="practiceLevelGrid" aria-label="Chọn bậc CEFR để luyện tập"></div>
+
+        <div class="practice-section-heading practice-topic-heading">
+          <div>
+            <span class="eyebrow"><i class="bi bi-journal-richtext"></i> IELTS Band 7.0+</span>
+            <h2 class="h3 mt-2 mb-1">Luyện theo 26 chủ đề C1-C2</h2>
+            <p class="text-muted-vb mb-0">Mỗi chủ đề gồm 40 từ hoặc cụm từ IELTS 7.0+ kèm nghĩa và collocation.</p>
+          </div>
+          <span class="practice-topic-total"><strong>1.040</strong> mục từ</span>
+        </div>
+        <div class="practice-topic-grid" id="practiceTopicGrid" aria-label="Chọn chủ đề IELTS để luyện tập"></div>
+      </div>
+    </section>
+
+    <section class="practice-session d-none" id="practiceSession" aria-live="polite">
+      <div class="container">
+        <div class="practice-toolbar">
+          <div>
+            <span class="badge badge-soft-primary rounded-pill px-3 py-2" id="practiceLevelBadge">CEFR A1</span>
+            <strong class="ms-2" id="practiceRoundLabel">Từ 1/50</strong>
+          </div>
+          <button class="btn btn-sm btn-outline-vb rounded-pill px-3" id="leavePractice" type="button"><i class="bi bi-grid me-1"></i>Đổi bộ luyện</button>
+        </div>
+
+        <div class="practice-progress" role="progressbar" aria-label="Tiến độ luyện tập" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="practice-progress-bar" id="practiceProgressBar"></div>
+        </div>
+
+        <div class="practice-stats">
+          <span><i class="bi bi-check-circle-fill text-success"></i> Đúng <strong id="practiceCorrect">0</strong></span>
+          <span><i class="bi bi-x-circle-fill text-danger"></i> Sai <strong id="practiceWrong">0</strong></span>
+          <span><i class="bi bi-percent text-info"></i> Chính xác <strong id="practiceAccuracy">0%</strong></span>
+        </div>
+
+        <section class="question-card practice-question-card text-center mx-auto" aria-labelledby="practiceWord">
+          <p class="text-muted-vb text-uppercase fw-bold mb-0">Chọn nghĩa đúng của từ</p>
+          <div class="practice-word-meta mt-3"><span id="practiceCategory">Danh từ</span></div>
+          <h2 class="battle-word" id="practiceWord">APPLE</h2>
+          <div class="row g-3" id="practiceAnswers"></div>
+
+          <div class="practice-feedback d-none" id="practiceFeedback">
+            <div class="practice-feedback-heading" id="practiceFeedbackHeading"></div>
+            <p class="mb-1"><strong id="practiceFeedbackWord"></strong> — <span id="practiceFeedbackMeaning"></span></p>
+            <p class="practice-example mb-0" id="practiceExample"></p>
+          </div>
+
+          <div class="d-flex flex-column flex-sm-row justify-content-center gap-2 mt-4">
+            <button class="btn btn-vb rounded-pill px-4 d-none" id="nextPracticeQuestion" type="button">Từ tiếp theo <i class="bi bi-arrow-right ms-1"></i></button>
+          </div>
+          <p class="small text-muted-vb mt-4 mb-0">Dùng phím A, B, C, D để chọn; nhấn Enter để sang từ tiếp theo.</p>
+        </section>
+      </div>
+    </section>
+
+    <section class="practice-result d-none" id="practiceResult" aria-live="polite">
+      <div class="container">
+        <div class="glass-card practice-result-card mx-auto text-center">
+          <div class="practice-result-icon"><i class="bi bi-stars"></i></div>
+          <span class="eyebrow mt-3" id="practiceResultLevel">Hoàn thành CEFR A1</span>
+          <h2 class="section-title mt-3 mb-2">Hoàn thành bộ luyện!</h2>
+          <p class="text-muted-vb" id="practiceResultCopy"></p>
+
+          <div class="row g-3 my-4">
+            <div class="col-4"><div class="practice-result-stat"><strong id="resultCorrect">0</strong><span>Đúng</span></div></div>
+            <div class="col-4"><div class="practice-result-stat"><strong id="resultAccuracy">0%</strong><span>Chính xác</span></div></div>
+            <div class="col-4"><div class="practice-result-stat"><strong id="resultBest">0/50</strong><span>Tốt nhất</span></div></div>
+          </div>
+
+          <div class="practice-mistakes text-start d-none" id="practiceMistakes">
+            <h3 class="h5 mb-3"><i class="bi bi-arrow-repeat text-warning me-2"></i>Các từ nên ôn lại</h3>
+            <div id="practiceMistakeList"></div>
+          </div>
+
+          <div class="d-flex flex-column flex-sm-row justify-content-center gap-2 mt-4">
+            <button class="btn btn-vb rounded-pill px-4" id="practiceAgain" type="button"><i class="bi bi-arrow-clockwise me-2"></i>Luyện lại bộ này</button>
+            <button class="btn btn-outline-vb rounded-pill px-4" id="chooseAnotherLevel" type="button">Chọn bộ khác</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div id="siteFooter"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/vocabulary-data.js"></script>
+  <script src="assets/js/vocabulary-examples.js"></script>
+  <script src="assets/js/ielts-band7-data.js"></script>
+  <script src="assets/js/ielts-advanced-data.js"></script>
+  <script src="assets/js/word-bank.js"></script>
+  <script src="assets/js/practice.js"></script>
+</body>
+</html>

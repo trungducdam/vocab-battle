@@ -12,6 +12,8 @@
 
 **Pororo Vocab Battle** là website học từ vựng tiếng Anh theo hình thức thi đấu 1v1. Người chơi có thể lựa chọn kho từ, số lượng câu hỏi và loại phòng trước khi bước vào trận đấu mô phỏng với hệ thống HP, điểm số và bộ đếm thời gian.
 
+Ngoài thi đấu, website có chế độ **Luyện tập theo bậc CEFR và chủ đề IELTS**, cho phép người học ôn toàn bộ từ của A1-C2 hoặc chọn một trong 26 chủ đề Band 7.0+ trong phiên không giới hạn thời gian.
+
 Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằng HTML, CSS, JavaScript thuần và Bootstrap 5. Sau này sẽ tiếp tục phát triển thành ứng dụng realtime với ASP.NET Core, SQL Server và SignalR.
 
 > **Trạng thái:** Frontend hoàn chỉnh · Backend đang trong kế hoạch triển khai
@@ -39,8 +41,8 @@ Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằn
 
 ### Kho từ vựng chung
 
-- 250 từ vựng duy nhất từ cấp độ **A1 đến C1**.
-- Bộ lọc riêng cho A1, A2, B1, B2 và C1.
+- 1.290 mục từ từ cấp độ **A1 đến C2**, gồm 1.040 mục IELTS Band 7.0+ theo chủ đề.
+- Bộ lọc riêng cho A1, A2, B1, B2, C1 và C2.
 - Tìm kiếm theo từ, nghĩa hoặc câu ví dụ.
 - Mỗi từ có nghĩa tiếng Việt, loại từ và câu ví dụ.
 - Nhấn vào một từ để mở hoặc đóng phần ví dụ.
@@ -53,6 +55,19 @@ Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằn
 - Nhập dữ liệu từ file **DOCX** hoặc **PDF**.
 - Tự động loại bỏ những từ trùng lặp khi nhập.
 - Có thể chọn kho riêng khi tạo trận với bạn bè.
+
+### Luyện tập theo bậc CEFR và chủ đề IELTS
+
+- Chọn một trong sáu bậc A1, A2, B1, B2, C1 hoặc C2.
+- Luyện toàn bộ từ đang có trong bậc đã chọn; dữ liệu nâng cao gồm 830 mục C1 và 260 mục C2.
+- Chọn riêng một trong **26 chủ đề IELTS**, mỗi chủ đề có 40 từ hoặc cụm từ.
+- Đáp án nhiễu ưu tiên nghĩa cùng loại từ, cùng chủ đề và có độ dài gần nhau để tăng độ khó.
+- Hiển thị nghĩa tiếng Việt và collocation lấy từ tài liệu nguồn sau mỗi câu.
+- Mỗi từ xuất hiện đúng một lần trong phiên và câu hỏi được trộn thứ tự.
+- Không giới hạn thời gian, phù hợp để học và ghi nhớ thay vì thi đấu.
+- Phản hồi ngay sau mỗi câu, kèm nghĩa đúng và câu ví dụ.
+- Theo dõi số câu đúng, sai, độ chính xác và tiến độ của phiên.
+- Lưu điểm tốt nhất theo từng bậc trên trình duyệt và liệt kê các từ cần ôn lại.
 
 ### Tài khoản và phân quyền
 
@@ -127,12 +142,13 @@ OTP demo: 123456
 1. Đăng ký hoặc đăng nhập vào hệ thống demo.
 2. Mở **Kho từ vựng** để tìm kiếm, lọc CEFR hoặc xem idioms.
 3. Nhấn vào từng từ để xem câu ví dụ.
-4. User có thể tạo kho riêng bằng cách thêm từ hoặc tải DOCX/PDF.
-5. Trở về trang chủ và chọn 10, 50 hoặc 100 câu.
-6. Chọn kho chung hoặc kho riêng.
-7. Tạo trận public hoặc phòng private.
-8. Bắt đầu trận đấu mô phỏng và trả lời bằng chuột hoặc bàn phím.
-9. Xem hồ sơ và bảng xếp hạng sau trận.
+4. Mở **Luyện tập**, chọn một bậc CEFR hoặc một trong 26 chủ đề IELTS để ôn toàn bộ bộ từ đó.
+5. User có thể tạo kho riêng bằng cách thêm từ hoặc tải DOCX/PDF.
+6. Trở về trang chủ và chọn 10, 50 hoặc 100 câu.
+7. Chọn kho chung hoặc kho riêng.
+8. Tạo trận public hoặc phòng private.
+9. Bắt đầu trận đấu mô phỏng và trả lời bằng chuột hoặc bàn phím.
+10. Xem hồ sơ và bảng xếp hạng sau trận.
 
 ## Cấu trúc thư mục
 
@@ -143,6 +159,7 @@ vocab-battle-frontend/
 ├── register.html               # Đăng ký và OTP
 ├── profile.html                # Hồ sơ người chơi
 ├── vocabulary.html             # Kho chung, idioms và kho riêng
+├── practice.html               # Luyện theo bậc CEFR và chủ đề IELTS
 ├── room.html                   # Tạo/tham gia phòng private
 ├── battle.html                 # Màn hình trận đấu mô phỏng
 ├── leaderboard.html            # Bảng xếp hạng
@@ -159,9 +176,12 @@ vocab-battle-frontend/
         ├── battle-config.js    # Cấu hình 10/50/100 câu
         ├── room.js             # Logic phòng chờ
         ├── battle.js           # Gameplay mô phỏng
+        ├── practice.js         # Câu hỏi theo bậc/chủ đề và kết quả luyện
         ├── vocabulary.js       # Giao diện và CRUD từ vựng
         ├── word-bank.js        # Kho chung/kho riêng
-        ├── vocabulary-data.js  # 250 từ A1-C1
+        ├── vocabulary-data.js  # 250 từ nền A1-C1
+        ├── ielts-band7-data.js # 312 mục C1 thuộc 26 chủ đề IELTS
+        ├── ielts-advanced-data.js # 728 mục C1-C2 mở rộng theo chủ đề
         ├── vocabulary-examples.js
         └── idiom-data.js       # 100 idioms
 ```
@@ -185,7 +205,7 @@ Không lưu token production, role hoặc đáp án đúng trong `localStorage`.
 ## Định hướng phát triển tiếp theo
 
 - [x] Hoàn thiện giao diện responsive.
-- [x] Hoàn thiện kho từ A1-C1 và idioms.
+- [x] Hoàn thiện kho từ A1-C2 và idioms.
 - [x] Hoàn thiện gameplay frontend mô phỏng.
 - [x] Hoàn thiện phân quyền Admin/User ở mức giao diện.
 - [ ] Xây dựng ASP.NET Core API.
