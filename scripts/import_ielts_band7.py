@@ -1,4 +1,4 @@
-"""Convert the 26 topic tables in the IELTS Band 7 DOCX into website seed data."""
+"""Convert the verified 26-topic C1/C2 DOCX into website seed data."""
 
 from __future__ import annotations
 
@@ -64,21 +64,6 @@ def slugify(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", ascii_value.lower()).strip("-")
 
 
-def category_from_code(code: str) -> str:
-    normalized = code.lower().replace(" ", "")
-    if normalized == "n.":
-        return "Danh từ"
-    if normalized == "v.":
-        return "Động từ"
-    if normalized == "adj.":
-        return "Tính từ"
-    if normalized == "adv.":
-        return "Trạng từ"
-    if normalized in {"v./n.", "n./v."}:
-        return "Danh từ / Động từ"
-    return "Cụm từ"
-
-
 def extract_topic_data(source: Path):
     document = Document(source)
     topic = None
@@ -103,37 +88,65 @@ def extract_topic_data(source: Path):
             continue
 
         topic_key = slugify(topic["name"])
+        header = [clean(cell.text) for cell in block.rows[0].cells[:4]]
+        if header != ["STT", "Từ / cụm từ", "Mức", "Nghĩa tiếng Việt"]:
+            raise ValueError(f"Unexpected table header for {topic['name']}: {header}")
+
         for position, row in enumerate(block.rows[1:], start=1):
-            word, part_of_speech, meaning, collocation = [clean(cell.text) for cell in row.cells[:4]]
-            if not word:
-                continue
+            number, word, source_level, meaning = [clean(cell.text) for cell in row.cells[:4]]
+            if number != str(position):
+                raise ValueError(
+                    f"Unexpected item number in {topic['name']}: expected {position}, found {number!r}"
+                )
+            if not word or not meaning:
+                raise ValueError(f"Blank word or meaning in {topic['name']} row {position}")
+            if source_level not in {"C1", "C2", "C1/C2"}:
+                raise ValueError(
+                    f"Unsupported CEFR label in {topic['name']} row {position}: {source_level!r}"
+                )
+
+            # Hybrid C1/C2 entries are included in C1 practice while the exact
+            # source label remains available in sourceLevel.
+            level = "C1" if source_level == "C1/C2" else source_level
+            is_phrase = position >= 37
             records.append(
                 {
-                    "id": f"ielts-band7-{topic_key}-{position:02d}",
-                    "sourceKey": f"ielts-band7:{topic_key}:{position:02d}",
+                    "id": f"ielts-verified-{topic_key}-{position:02d}",
+                    "sourceKey": f"ielts-verified:{topic_key}:{position:02d}",
                     "word": word,
                     "meaning": meaning,
-                    "level": "C1",
-                    "partOfSpeech": part_of_speech,
-                    "category": category_from_code(part_of_speech),
-                    "collocation": collocation,
+                    "level": level,
+                    "sourceLevel": source_level,
+                    "partOfSpeech": "phrase" if is_phrase else "word",
+                    "category": "Cụm từ học thuật" if is_phrase else "Từ vựng IELTS",
                     "topic": topic["name"],
                     "topicKey": topic_key,
-                    "source": "IELTS Vocabulary Band 7.0+",
+                    "source": "IELTS C1-C2 26 Topics (Verified)",
+                    "seedVersion": 6,
                 }
             )
 
     if len(topics) != 26:
         raise ValueError(f"Expected 26 topics, found {len(topics)}")
-    if len(records) != 312:
-        raise ValueError(f"Expected 312 topic records, found {len(records)}")
+    if len(records) != 1040:
+        raise ValueError(f"Expected 1040 topic records, found {len(records)}")
 
     counts = {item["name"]: 0 for item in topics}
     for record in records:
         counts[record["topic"]] += 1
-    invalid = {name: count for name, count in counts.items() if count != 12}
+    invalid = {name: count for name, count in counts.items() if count != 40}
     if invalid:
-        raise ValueError(f"Every topic must contain 12 records: {invalid}")
+        raise ValueError(f"Every topic must contain 40 records: {invalid}")
+
+    for item in topics:
+        topic_words = [
+            record["word"].casefold()
+            for record in records
+            if record["topic"] == item["name"]
+        ]
+        duplicates = sorted({word for word in topic_words if topic_words.count(word) > 1})
+        if duplicates:
+            raise ValueError(f"Duplicate words in {item['name']}: {duplicates}")
 
     topic_data = [
         {
@@ -151,8 +164,16 @@ def extract_topic_data(source: Path):
 def write_javascript(output: Path, topics, records) -> None:
     topic_json = json.dumps(topics, ensure_ascii=False, indent=2)
     record_json = json.dumps(records, ensure_ascii=False, indent=2)
-    content = f"""// Generated from IELTS_Vocabulary_Band_7_Trungdz.docx.
-// 26 topics x 12 entries = 312 C1 records. Topic duplicates are intentionally preserved.
+    content = f"""// Generated from IELTS_C1_C2_26_Topics_40_Words_Each_VERIFIED.docx.
+// 26 topics x 40 entries = 1,040 verified C1/C2 records.
+// Source labels C1/C2 are mapped to C1 for the website filter and retained in sourceLevel.
+const replacedCefrLevels = new Set(["C1", "C2", "C1/C2"]);
+for (let index = vocabularySeed.length - 1; index >= 0; index -= 1) {{
+  if (replacedCefrLevels.has(String(vocabularySeed[index].level || "").toUpperCase())) {{
+    vocabularySeed.splice(index, 1);
+  }}
+}}
+
 const ieltsBand7Topics = {topic_json};
 
 const ieltsBand7Seed = {record_json};

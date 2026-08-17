@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const session = document.querySelector("#practiceSession");
   const result = document.querySelector("#practiceResult");
   const answers = document.querySelector("#practiceAnswers");
+  const questionCard = document.querySelector(".practice-question-card");
   const wordLabel = document.querySelector("#practiceWord");
   const categoryLabel = document.querySelector("#practiceCategory");
   const levelBadge = document.querySelector("#practiceLevelBadge");
@@ -229,8 +230,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const question = questions[currentIndex];
     levelBadge.textContent = activeSet.badge;
     roundLabel.textContent = `Từ ${currentIndex + 1}/${questions.length}`;
-    wordLabel.textContent = String(question.word).toUpperCase();
+    const displayWord = String(question.word || "").trim();
+    wordLabel.textContent = displayWord;
+    wordLabel.classList.toggle("is-long", displayWord.length > 22 && displayWord.length <= 34);
+    wordLabel.classList.toggle("is-very-long", displayWord.length > 34);
     categoryLabel.textContent = question.category;
+    questionCard.classList.remove("answer-state-correct", "answer-state-wrong");
     feedback.classList.add("d-none");
     feedback.classList.remove("is-correct", "is-wrong");
     nextButton.classList.add("d-none");
@@ -256,6 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const question = questions[currentIndex];
     const buttons = [...answers.querySelectorAll("[data-practice-answer]")];
     const isCorrect = selectedIndex === question.correct;
+    questionCard.classList.add(isCorrect ? "answer-state-correct" : "answer-state-wrong");
 
     buttons.forEach(button => {
       button.disabled = true;

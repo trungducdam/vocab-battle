@@ -41,11 +41,11 @@ Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằn
 
 ### Kho từ vựng chung
 
-- 1.290 mục từ từ cấp độ **A1 đến C2**, gồm 1.040 mục IELTS Band 7.0+ theo chủ đề.
+- 1.240 mục từ từ cấp độ **A1 đến C2**, gồm 200 mục A1-B2 và 1.040 mục IELTS C1-C2 theo chủ đề.
 - Bộ lọc riêng cho A1, A2, B1, B2, C1 và C2.
 - Tìm kiếm theo từ, nghĩa hoặc câu ví dụ.
-- Mỗi từ có nghĩa tiếng Việt, loại từ và câu ví dụ.
-- Nhấn vào một từ để mở hoặc đóng phần ví dụ.
+- Mỗi mục có nghĩa tiếng Việt, nhãn CEFR, loại mục và chủ đề; nhóm A1-B2 có thêm câu ví dụ.
+- Với mục có ví dụ, nhấn vào từ để mở hoặc đóng phần nội dung này.
 - Mục riêng chứa **100 idioms** kèm nghĩa và ví dụ ứng dụng.
 
 ### Kho từ vựng riêng
@@ -59,13 +59,14 @@ Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằn
 ### Luyện tập theo bậc CEFR và chủ đề IELTS
 
 - Chọn một trong sáu bậc A1, A2, B1, B2, C1 hoặc C2.
-- Luyện toàn bộ từ đang có trong bậc đã chọn; dữ liệu nâng cao gồm 830 mục C1 và 260 mục C2.
+- Luyện toàn bộ từ đang có trong bậc đã chọn; dữ liệu nâng cao gồm 780 mục C1 và 260 mục C2.
 - Chọn riêng một trong **26 chủ đề IELTS**, mỗi chủ đề có 40 từ hoặc cụm từ.
 - Đáp án nhiễu ưu tiên nghĩa cùng loại từ, cùng chủ đề và có độ dài gần nhau để tăng độ khó.
-- Hiển thị nghĩa tiếng Việt và collocation lấy từ tài liệu nguồn sau mỗi câu.
+- Từ/cụm từ tự điều chỉnh cỡ chữ theo độ dài; đáp án đúng và sai có hiệu ứng phản hồi riêng, đồng thời tôn trọng cài đặt giảm chuyển động của thiết bị.
+- Mỗi chủ đề có đúng 36 từ đơn và 4 cụm học thuật, kèm nghĩa tiếng Việt lấy từ tài liệu đã kiểm chứng.
 - Mỗi từ xuất hiện đúng một lần trong phiên và câu hỏi được trộn thứ tự.
 - Không giới hạn thời gian, phù hợp để học và ghi nhớ thay vì thi đấu.
-- Phản hồi ngay sau mỗi câu, kèm nghĩa đúng và câu ví dụ.
+- Phản hồi ngay sau mỗi câu, luôn kèm nghĩa đúng và hiển thị câu ví dụ khi dữ liệu nguồn có cung cấp.
 - Theo dõi số câu đúng, sai, độ chính xác và tiến độ của phiên.
 - Lưu điểm tốt nhất theo từng bậc trên trình duyệt và liệt kê các từ cần ôn lại.
 
@@ -83,6 +84,7 @@ Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằn
 
 - Responsive trên desktop, tablet và điện thoại.
 - Thiết kế dark theme với phong cách game/arena.
+- Nền Aurora gradient tím-xanh chuyển động chậm, tối ưu riêng cho thiết bị di động.
 - Navbar, modal, toast, pagination và trạng thái rỗng.
 - Màn hình Pororo loading khi mở hoặc refresh trang.
 - Hiệu ứng chuyển trang cho đăng nhập, tạo phòng và vào trận.
@@ -179,9 +181,8 @@ vocab-battle-frontend/
         ├── practice.js         # Câu hỏi theo bậc/chủ đề và kết quả luyện
         ├── vocabulary.js       # Giao diện và CRUD từ vựng
         ├── word-bank.js        # Kho chung/kho riêng
-        ├── vocabulary-data.js  # 250 từ nền A1-C1
-        ├── ielts-band7-data.js # 312 mục C1 thuộc 26 chủ đề IELTS
-        ├── ielts-advanced-data.js # 728 mục C1-C2 mở rộng theo chủ đề
+        ├── vocabulary-data.js  # 200 từ nền A1-B2
+        ├── ielts-band7-data.js # 1.040 mục C1-C2 thuộc 26 chủ đề IELTS
         ├── vocabulary-examples.js
         └── idiom-data.js       # 100 idioms
 ```

@@ -1,5 +1,5 @@
 function getPublicVocabulary() {
-  const storageKey = "vb_words_v5";
+  const storageKey = "vb_words_v6";
   const wordKey = item => item.sourceKey || `${item.level}|${item.word}`.toLowerCase();
   const current = JSON.parse(localStorage.getItem(storageKey) || "null");
   const seedByKey = new Map(vocabularySeed.map(item => [wordKey(item), item]));
@@ -17,16 +17,26 @@ function getPublicVocabulary() {
     return hydrated;
   }
 
+  const previousV5 = JSON.parse(localStorage.getItem("vb_words_v5") || "null");
   const previousV4 = JSON.parse(localStorage.getItem("vb_words_v4") || "null");
   const previousV3 = JSON.parse(localStorage.getItem("vb_words_v3") || "null");
   const legacy = JSON.parse(localStorage.getItem("vb_words_v2") || "null");
-  const savedWords = Array.isArray(previousV4)
-    ? previousV4
-    : Array.isArray(previousV3)
-      ? previousV3
-      : Array.isArray(legacy)
-        ? legacy
-        : [];
+  const previousWords = [previousV5, previousV4, previousV3, legacy].find(Array.isArray);
+  const hasPreviousWords = Array.isArray(previousWords);
+  const isReplacedCefrSeed = item => {
+    const sourceKey = String(item.sourceKey || "").toLowerCase();
+    const source = String(item.source || "").toLowerCase();
+    const numericId = Number(item.id);
+    const isLegacyC1Seed = !item.sourceKey && Number.isInteger(numericId) && numericId >= 201 && numericId <= 250;
+    return Boolean(
+      item.topicKey ||
+      sourceKey.startsWith("ielts-band7:") ||
+      sourceKey.startsWith("ielts-advanced:") ||
+      source.includes("ielts") ||
+      isLegacyC1Seed
+    );
+  };
+  const savedWords = hasPreviousWords ? previousWords.filter(item => !isReplacedCefrSeed(item)) : [];
   const merged = savedWords.map(item => {
     const seed = seedByKey.get(wordKey(item));
     return {
@@ -37,8 +47,8 @@ function getPublicVocabulary() {
     };
   });
   const existingKeys = new Set(merged.map(wordKey));
-  const seedAdditions = Array.isArray(previousV4)
-    ? vocabularySeed.filter(item => Number(item.seedVersion || 0) >= 5)
+  const seedAdditions = hasPreviousWords
+    ? vocabularySeed.filter(item => Number(item.seedVersion || 0) >= 6)
     : vocabularySeed;
   seedAdditions.forEach(item => {
     const key = wordKey(item);
@@ -49,7 +59,7 @@ function getPublicVocabulary() {
 }
 
 function savePublicVocabulary(words) {
-  localStorage.setItem("vb_words_v5", JSON.stringify(words));
+  localStorage.setItem("vb_words_v6", JSON.stringify(words));
 }
 
 function getPublicIdioms() {

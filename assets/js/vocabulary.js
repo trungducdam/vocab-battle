@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="flex-grow-1">
             <div class="d-flex flex-wrap align-items-center gap-2">
               <h5 class="mb-0">${escapeHtml(item.word)}</h5>
-              ${idiomMode ? "" : `<span class="badge badge-soft-primary">CEFR ${escapeHtml(item.level || "A1")}</span>`}
+              ${idiomMode ? "" : `<span class="badge badge-soft-primary">CEFR ${escapeHtml(item.sourceLevel || item.level || "A1")}</span>`}
               <span class="badge badge-soft-success">${escapeHtml(item.category || item.partOfSpeech || "Từ vựng")}</span>
               ${item.topic ? `<span class="badge practice-topic-badge">${escapeHtml(item.topic)}</span>` : ""}
             </div>
