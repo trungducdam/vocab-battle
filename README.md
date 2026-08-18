@@ -33,6 +33,7 @@ Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằn
 ### Thi đấu từ vựng
 
 - Tạo trận **public** hoặc phòng **private**.
+- Phản hồi đúng/sai bằng hiệu ứng ánh sáng, xung kích và pháo giấy; bộ đếm chuỗi có hiệu ứng tăng cấp ở các mốc liên tiếp.
 - Ba chế độ: **10 câu, 50 câu và 100 câu**.
 - HP, sát thương và điểm số được điều chỉnh theo từng chế độ.
 - Hai người chơi được thiết kế để nhận cùng câu hỏi theo cùng thứ tự.
@@ -44,6 +45,7 @@ Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằn
 - 1.240 mục từ từ cấp độ **A1 đến C2**, gồm 200 mục A1-B2 và 1.040 mục IELTS C1-C2 theo chủ đề.
 - Bộ lọc riêng cho A1, A2, B1, B2, C1 và C2.
 - Tìm kiếm theo từ, nghĩa hoặc câu ví dụ.
+- Nhấn vào từ để xem IPA UK/US từ nguồn mở và mở liên kết kiểm chứng trên Cambridge Dictionary.
 - Mỗi mục có nghĩa tiếng Việt, nhãn CEFR, loại mục và chủ đề; nhóm A1-B2 có thêm câu ví dụ.
 - Với mục có ví dụ, nhấn vào từ để mở hoặc đóng phần nội dung này.
 - Mục riêng chứa **100 idioms** kèm nghĩa và ví dụ ứng dụng.
@@ -63,6 +65,7 @@ Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằn
 - Chọn riêng một trong **26 chủ đề IELTS**, mỗi chủ đề có 40 từ hoặc cụm từ.
 - Đáp án nhiễu ưu tiên nghĩa cùng loại từ, cùng chủ đề và có độ dài gần nhau để tăng độ khó.
 - Từ/cụm từ tự điều chỉnh cỡ chữ theo độ dài; đáp án đúng và sai có hiệu ứng phản hồi riêng, đồng thời tôn trọng cài đặt giảm chuyển động của thiết bị.
+- Sau khi trả lời, thẻ phản hồi hiển thị IPA UK/US và liên kết tra cứu Cambridge; phiên âm không xuất hiện trong trận đấu.
 - Mỗi chủ đề có đúng 36 từ đơn và 4 cụm học thuật, kèm nghĩa tiếng Việt lấy từ tài liệu đã kiểm chứng.
 - Mỗi từ xuất hiện đúng một lần trong phiên và câu hỏi được trộn thứ tự.
 - Không giới hạn thời gian, phù hợp để học và ghi nhớ thay vì thi đấu.
@@ -143,7 +146,7 @@ OTP demo: 123456
 
 1. Đăng ký hoặc đăng nhập vào hệ thống demo.
 2. Mở **Kho từ vựng** để tìm kiếm, lọc CEFR hoặc xem idioms.
-3. Nhấn vào từng từ để xem câu ví dụ.
+3. Nhấn vào từng từ để xem phiên âm, liên kết Cambridge và câu ví dụ.
 4. Mở **Luyện tập**, chọn một bậc CEFR hoặc một trong 26 chủ đề IELTS để ôn toàn bộ bộ từ đó.
 5. User có thể tạo kho riêng bằng cách thêm từ hoặc tải DOCX/PDF.
 6. Trở về trang chủ và chọn 10, 50 hoặc 100 câu.
@@ -181,6 +184,7 @@ vocab-battle-frontend/
         ├── practice.js         # Câu hỏi theo bậc/chủ đề và kết quả luyện
         ├── vocabulary.js       # Giao diện và CRUD từ vựng
         ├── word-bank.js        # Kho chung/kho riêng
+        ├── pronunciation-data.js # IPA UK/US rút gọn cho dữ liệu của web
         ├── vocabulary-data.js  # 200 từ nền A1-B2
         ├── ielts-band7-data.js # 1.040 mục C1-C2 thuộc 26 chủ đề IELTS
         ├── vocabulary-examples.js

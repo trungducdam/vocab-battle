@@ -36,6 +36,17 @@ document.addEventListener("DOMContentLoaded", () => {
     })[character]);
   }
 
+  function pronunciationDetails(term) {
+    const pronunciation = typeof VBPronunciation === "undefined" ? null : VBPronunciation.get(term);
+    const cambridgeUrl = typeof VBPronunciation === "undefined" ? "https://dictionary.cambridge.org/vi/dictionary/english/" : VBPronunciation.cambridgeUrl(term);
+    const variants = [
+      pronunciation?.uk ? `<span class="pronunciation-variant"><b>UK</b> <span class="ipa-text">${escapeHtml(pronunciation.uk)}</span></span>` : "",
+      pronunciation?.us ? `<span class="pronunciation-variant"><b>US</b> <span class="ipa-text">${escapeHtml(pronunciation.us)}</span></span>` : ""
+    ].filter(Boolean).join("");
+    const missing = variants ? "" : '<span class="pronunciation-missing">Chưa có IPA trong nguồn mở</span>';
+    return `<div class="word-pronunciation-row"><i class="bi bi-soundwave" aria-hidden="true"></i>${variants}${missing}<a class="cambridge-lookup" href="${escapeHtml(cambridgeUrl)}" target="_blank" rel="noopener noreferrer" aria-label="Kiểm tra phát âm của ${escapeHtml(term)} trên Cambridge Dictionary"><i class="bi bi-box-arrow-up-right"></i> Cambridge</a></div>`;
+  }
+
   function currentWords() {
     if (activeBank === "personal") return personalWords;
     if (activeBank === "idioms") return publicIdioms;
@@ -93,6 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const usageLabel = item.example ? "Ví dụ" : "Collocation";
       const hasUsage = Boolean(usageText);
       const detailId = `word-example-${activeBank}-${String(item.id).replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+      const pronunciationHtml = pronunciationDetails(item.word);
       const icon = activeBank === "personal" ? "bi-folder2-open" : idiomMode ? "bi-chat-quote" : "bi-translate";
       const summary = `
         <div class="word-summary-content d-flex align-items-center gap-3">
@@ -106,15 +118,15 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
             <p class="text-muted-vb mb-0 mt-1">${escapeHtml(item.meaning)}</p>
           </div>
-          ${hasUsage ? '<i class="bi bi-chevron-down word-toggle-icon" aria-hidden="true"></i>' : ""}
+          <i class="bi bi-chevron-down word-toggle-icon" aria-hidden="true"></i>
         </div>`;
       return `
         <div class="word-list-item" data-id="${escapeHtml(item.id)}">
           <div class="word-list-summary d-flex align-items-center gap-2">
-            ${hasUsage ? `<button class="word-toggle flex-grow-1" type="button" aria-expanded="false" aria-controls="${detailId}">${summary}</button>` : `<div class="word-toggle-static flex-grow-1">${summary}</div>`}
+            <button class="word-toggle flex-grow-1" type="button" aria-expanded="false" aria-controls="${detailId}">${summary}</button>
             ${canEditCurrentBank() ? `<div class="d-flex gap-2"><button class="btn btn-sm btn-outline-vb edit-word" aria-label="Sửa ${escapeHtml(item.word)}"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger delete-word" aria-label="Xóa ${escapeHtml(item.word)}"><i class="bi bi-trash"></i></button></div>` : ""}
           </div>
-          ${hasUsage ? `<div class="word-example" id="${detailId}" hidden><div class="word-example-label"><i class="bi bi-lightbulb me-2"></i>${usageLabel}</div><p class="mb-0">${escapeHtml(usageText)}</p></div>` : ""}
+          <div class="word-example" id="${detailId}" hidden>${pronunciationHtml}${hasUsage ? `<div class="word-example-label"><i class="bi bi-lightbulb me-2"></i>${usageLabel}</div><p class="mb-0">${escapeHtml(usageText)}</p>` : ""}</div>
         </div>`;
     }).join("") : `<div class="text-center py-5 text-muted-vb"><i class="bi bi-${activeBank === "personal" ? "folder-plus" : idiomMode ? "chat-quote" : "search"} fs-1"></i><p class="mt-2">${activeBank === "personal" ? "Kho riêng chưa có từ. Hãy tải DOCX/PDF hoặc thêm thủ công." : idiomMode ? "Không tìm thấy idiom phù hợp." : "Không tìm thấy từ phù hợp."}</p></div>`;
 
