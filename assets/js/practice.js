@@ -220,6 +220,50 @@ document.addEventListener("DOMContentLoaded", () => {
     accuracyLabel.textContent = `${accuracy}%`;
   }
 
+  function playAnswerEffect(isCorrect, selectedButton) {
+    if (!questionCard || !selectedButton || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    questionCard.querySelector(".practice-answer-fx")?.remove();
+
+    const cardRect = questionCard.getBoundingClientRect();
+    const buttonRect = selectedButton.getBoundingClientRect();
+    const originX = buttonRect.left - cardRect.left + buttonRect.width / 2;
+    const originY = buttonRect.top - cardRect.top + buttonRect.height / 2;
+    const effect = document.createElement("div");
+    const colors = isCorrect
+      ? ["#34d399", "#22d3ee", "#facc15", "#a78bfa", "#fb7185", "#f8fafc"]
+      : ["#fb7185", "#f43f5e", "#fb923c", "#facc15", "#fecdd3"];
+    const particleCount = isCorrect ? 34 : 22;
+
+    effect.className = `practice-answer-fx ${isCorrect ? "is-correct" : "is-wrong"}`;
+    effect.setAttribute("aria-hidden", "true");
+    effect.style.setProperty("--origin-x", `${originX}px`);
+    effect.style.setProperty("--origin-y", `${originY}px`);
+    effect.innerHTML = `
+      <span class="practice-fx-flash"></span>
+      <span class="practice-fx-ring practice-fx-ring-one"></span>
+      <span class="practice-fx-ring practice-fx-ring-two"></span>
+      <span class="practice-fx-symbol"><i class="bi ${isCorrect ? "bi-check-lg" : "bi-x-lg"}"></i></span>
+      <span class="practice-fx-label">${isCorrect ? "CHÍNH XÁC!" : "CHƯA ĐÚNG!"}</span>
+    `;
+
+    for (let index = 0; index < particleCount; index += 1) {
+      const angle = (Math.PI * 2 * index) / particleCount + (Math.random() - 0.5) * 0.3;
+      const distance = (isCorrect ? 105 : 75) + Math.random() * (isCorrect ? 185 : 115);
+      const particle = document.createElement("span");
+      particle.className = `practice-fx-particle particle-${index % 3}`;
+      particle.style.setProperty("--tx", `${Math.cos(angle) * distance}px`);
+      particle.style.setProperty("--ty", `${Math.sin(angle) * distance}px`);
+      particle.style.setProperty("--rotate", `${240 + Math.random() * 620}deg`);
+      particle.style.setProperty("--delay", `${Math.random() * 90}ms`);
+      particle.style.setProperty("--particle-color", colors[index % colors.length]);
+      effect.appendChild(particle);
+    }
+
+    questionCard.appendChild(effect);
+    window.setTimeout(() => effect.remove(), 1250);
+  }
+
   function renderQuestion() {
     if (currentIndex >= questions.length) {
       finishPractice();
@@ -236,6 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
     wordLabel.classList.toggle("is-very-long", displayWord.length > 34);
     categoryLabel.textContent = question.category;
     questionCard.classList.remove("answer-state-correct", "answer-state-wrong");
+    questionCard.querySelector(".practice-answer-fx")?.remove();
     feedback.classList.add("d-none");
     feedback.classList.remove("is-correct", "is-wrong");
     nextButton.classList.add("d-none");
@@ -262,6 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const buttons = [...answers.querySelectorAll("[data-practice-answer]")];
     const isCorrect = selectedIndex === question.correct;
     questionCard.classList.add(isCorrect ? "answer-state-correct" : "answer-state-wrong");
+    playAnswerEffect(isCorrect, buttons[selectedIndex]);
 
     buttons.forEach(button => {
       button.disabled = true;
