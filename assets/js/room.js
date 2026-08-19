@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const emptyPanel = document.querySelector("#emptyRoomPanel");
   const modeInputs = [...document.querySelectorAll('input[name="roomMode"]')];
   const bankInputs = [...document.querySelectorAll('input[name="roomBank"]')];
+  const difficultyInputs = [...document.querySelectorAll('input[name="roomDifficulty"]')];
   const modeSummary = document.querySelector("#roomModeSummary");
   const personalWords = getPersonalVocabulary();
 
@@ -14,23 +15,27 @@ document.addEventListener("DOMContentLoaded", () => {
   activeInput.checked = true;
   const activeBankInput = bankInputs.find(input => input.value === savedSettings.bankType) || bankInputs[0];
   activeBankInput.checked = true;
+  const activeDifficultyInput = difficultyInputs.find(input => input.value === savedSettings.difficulty) || difficultyInputs.find(input => input.value === "normal") || difficultyInputs[0];
+  activeDifficultyInput.checked = true;
   document.querySelector("#roomPersonalCount").textContent = personalWords.length ? `${personalWords.length} từ của bạn` : "Chưa có bộ từ";
   document.querySelector("#roomBankPersonal").disabled = personalWords.length < 4;
 
   function syncMode() {
     const count = Number(modeInputs.find(input => input.checked)?.value || 10);
     const bankType = bankInputs.find(input => input.checked)?.value || "public";
+    const difficulty = difficultyInputs.find(input => input.checked)?.value || "normal";
     if (bankType === "personal" && personalWords.length < count) {
       VB.toast(`Kho riêng cần ít nhất ${count} từ cho chế độ đã chọn.`, "warning");
       return null;
     }
-    const settings = saveBattleSettings(count, "private", bankType);
+    const settings = saveBattleSettings(count, "private", bankType, difficulty);
     modeSummary.innerHTML = `${battleModeSummary(settings)}<span>📚 ${bankType === "personal" ? "Kho riêng" : "Kho chung"}</span>`;
     return settings;
   }
 
   modeInputs.forEach(input => input.addEventListener("change", syncMode));
   bankInputs.forEach(input => input.addEventListener("change", syncMode));
+  difficultyInputs.forEach(input => input.addEventListener("change", syncMode));
   modeSummary.innerHTML = `${battleModeSummary(savedSettings)}<span>📚 ${savedSettings.bankType === "personal" ? "Kho riêng" : "Kho chung"}</span>`;
 
   function openRoom(code, isHost) {

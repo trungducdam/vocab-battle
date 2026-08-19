@@ -20,7 +20,6 @@
       <div class="container position-relative">
         <div class="row g-5 align-items-center">
           <div class="col-lg-5">
-            <span class="eyebrow"><i class="bi bi-broadcast"></i> Đấu từ vựng thời gian thực</span>
             <h1 class="hero-title">Vocab Battle.<br><span class="gradient-text">Học vui cùng Pororo.</span></h1>
             <p class="hero-copy">Chọn chế độ, vào phòng và bắt đầu trận đấu 1v1 chỉ trong vài giây.</p>
             <div class="pororo-hero" style="width:min(175px,45vw);margin-left:0"><img src="assets/images/pororo.jpg" alt="Pororo đồng hành cùng người học từ vựng"></div>
@@ -38,6 +37,12 @@
               <div class="row g-2 mb-3">
                 <div class="col-6 mode-option"><input type="radio" name="homeBank" id="homeBankPublic" value="public" checked><label for="homeBankPublic"><i class="bi bi-globe2 me-1"></i>Từ vựng chung<small>Kho A1-C2 của web</small></label></div>
                 <div class="col-6 mode-option"><input type="radio" name="homeBank" id="homeBankPersonal" value="personal"><label for="homeBankPersonal"><i class="bi bi-folder2-open me-1"></i>Từ vựng riêng<small id="homePersonalCount">Chưa có bộ từ</small></label></div>
+              </div>
+              <p class="form-label mb-2">Độ khó bot</p>
+              <div class="row g-2 mb-3">
+                <div class="col-4 mode-option"><input type="radio" name="homeDifficulty" id="homeDifficultyEasy" value="easy"><label for="homeDifficultyEasy">Easy<small>Chậm · 55%</small></label></div>
+                <div class="col-4 mode-option"><input type="radio" name="homeDifficulty" id="homeDifficultyNormal" value="normal" checked><label for="homeDifficultyNormal">Normal<small>Cân bằng · 72%</small></label></div>
+                <div class="col-4 mode-option"><input type="radio" name="homeDifficulty" id="homeDifficultyHard" value="hard"><label for="homeDifficultyHard">Hard<small>Nhanh · 88%</small></label></div>
               </div>
               <div class="battle-summary mb-4" id="modeSummary"><span>❤️ 100 HP</span><span>⚔️ 20 sát thương</span><span>⭐ 100 điểm/câu</span></div>
               <div class="row g-3">

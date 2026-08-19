@@ -34,6 +34,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const feedbackPronunciation = document.querySelector("#practiceFeedbackPronunciation");
   const exampleLabel = document.querySelector("#practiceExample");
   const nextButton = document.querySelector("#nextPracticeQuestion");
+  const resumeSection = document.querySelector("#practiceResumeSection");
+  const resumeTitle = document.querySelector("#practiceResumeTitle");
+  const resumeMeta = document.querySelector("#practiceResumeMeta");
+  const resumeButton = document.querySelector("#resumePractice");
+  const discardButton = document.querySelector("#discardPractice");
+  const progressStorageKey = "vb_practice_progress_v1";
 
   let activeSet = null;
   let questions = [];
@@ -85,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function wordsForTopic(topicKey) {
-    return publicWords.filter(item => item.topicKey === topicKey);
+    return publicWords.filter(item => item.topicKey === topicKey || item.topicKeys?.includes(topicKey));
   }
 
   function getPracticeSet(type, key) {
@@ -97,7 +103,16 @@ document.addEventListener("DOMContentLoaded", () => {
         key,
         title: topic.name,
         badge: `IELTS · ${topic.name}`,
-        words: wordsForTopic(key)
+        words: wordsForTopic(key).map(item => {
+          const membership = item.topicMemberships?.find(entry => entry.topicKey === key);
+          return membership ? {
+            ...item,
+            level: membership.level || item.level,
+            meaning: membership.meaning || item.meaning,
+            partOfSpeech: membership.partOfSpeech || item.partOfSpeech,
+            category: membership.category || item.category
+          } : item;
+        })
       };
     }
 
@@ -121,11 +136,59 @@ document.addEventListener("DOMContentLoaded", () => {
     return type === "level" ? Number(bestScores[key] || 0) : 0;
   }
 
+  function getSavedProgress() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(progressStorageKey) || "null");
+      if (!saved || !saved.activeSet || !Array.isArray(saved.questions) || saved.questions.length < 4) return null;
+      const current = Number(saved.currentIndex);
+      if (!Number.isInteger(current) || current < 0 || current > saved.questions.length) return null;
+      return saved;
+    } catch {
+      return null;
+    }
+  }
+
+  function saveProgress(nextIndex = currentIndex) {
+    if (!activeSet || !questions.length) return;
+    const answered = Math.max(0, Math.min(nextIndex, questions.length));
+    localStorage.setItem(progressStorageKey, JSON.stringify({
+      version: 1,
+      activeSet: {
+        type: activeSet.type,
+        key: activeSet.key,
+        title: activeSet.title,
+        badge: activeSet.badge
+      },
+      questions,
+      currentIndex: answered,
+      correctCount,
+      wrongCount: Math.max(0, answered - correctCount),
+      mistakes,
+      updatedAt: new Date().toISOString()
+    }));
+    renderResumeCard();
+  }
+
+  function clearProgress() {
+    localStorage.removeItem(progressStorageKey);
+    renderResumeCard();
+  }
+
+  function renderResumeCard() {
+    const saved = getSavedProgress();
+    resumeSection.classList.toggle("d-none", !saved || !session.classList.contains("d-none") || !result.classList.contains("d-none"));
+    if (!saved) return;
+    const answered = Math.min(saved.currentIndex, saved.questions.length);
+    const updated = saved.updatedAt ? new Date(saved.updatedAt) : null;
+    resumeTitle.textContent = `Continue ${saved.activeSet.title} — ${answered}/${saved.questions.length}`;
+    resumeMeta.textContent = `${saved.correctCount || 0} đúng · ${saved.wrongCount || 0} sai${updated && !Number.isNaN(updated.getTime()) ? ` · Cập nhật ${updated.toLocaleString("vi-VN")}` : ""}`;
+  }
+
   function renderLevelCards() {
     const bestScores = getBestScores();
     levelGrid.innerHTML = levels.map(level => {
       const count = wordsForLevel(level).length;
-      const best = bestScore(bestScores, "level", level);
+      const best = Math.min(bestScore(bestScores, "level", level), count);
       const detail = levelDetails[level];
       return `
         <button class="practice-level-card" type="button" data-practice-level="${level}" aria-label="Luyện ${count} từ bậc ${level}">
@@ -145,7 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const bestScores = getBestScores();
     topicGrid.innerHTML = topics.map(topic => {
       const count = wordsForTopic(topic.key).length;
-      const best = bestScore(bestScores, "topic", topic.key);
+      const best = Math.min(bestScore(bestScores, "topic", topic.key), count);
       return `
         <button class="practice-topic-card" type="button" data-practice-topic="${topic.key}" aria-label="Luyện ${count} từ chủ đề ${escapeHtml(topic.name)}">
           <span class="practice-topic-number">${String(topic.number).padStart(2, "0")}</span>
@@ -174,7 +237,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const candidates = [...candidateMap.values()];
     const categoryOf = candidate => String(candidate.category || candidate.partOfSpeech || "").trim().toLowerCase();
     const hasSimilarLength = candidate => Math.abs(entryMeaningLength - String(candidate.meaning || "").trim().length) <= 12;
-    const sameTopic = candidate => Boolean(entry.topicKey && candidate.topicKey === entry.topicKey);
+    const entryTopicKeys = new Set(entry.topicKeys || [entry.topicKey].filter(Boolean));
+    const sameTopic = candidate => (candidate.topicKeys || [candidate.topicKey].filter(Boolean)).some(key => entryTopicKeys.has(key));
     const sameCategory = candidate => Boolean(entryCategory && categoryOf(candidate) === entryCategory);
     const priorityPredicates = [
       candidate => sameTopic(candidate) && sameCategory(candidate) && hasSimilarLength(candidate),
@@ -312,6 +376,7 @@ document.addEventListener("DOMContentLoaded", () => {
     nextButton.classList.remove("d-none");
     setProgress(currentIndex + 1);
     updateStats(currentIndex + 1);
+    saveProgress(currentIndex + 1);
     nextButton.focus({ preventScroll: true });
   }
 
@@ -331,8 +396,34 @@ document.addEventListener("DOMContentLoaded", () => {
     levelSection.classList.add("d-none");
     result.classList.add("d-none");
     session.classList.remove("d-none");
+    resumeSection.classList.add("d-none");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    saveProgress(0);
+    renderQuestion();
+  }
+
+  function resumePractice() {
+    const saved = getSavedProgress();
+    if (!saved) {
+      VB.toast("Không tìm thấy phiên luyện để tiếp tục.", "warning");
+      renderResumeCard();
+      return;
+    }
+    const restoredSet = getPracticeSet(saved.activeSet.type, saved.activeSet.key);
+    activeSet = restoredSet ? { ...restoredSet, title: saved.activeSet.title, badge: saved.activeSet.badge } : saved.activeSet;
+    questions = saved.questions;
+    currentIndex = saved.currentIndex;
+    correctCount = Number(saved.correctCount) || 0;
+    mistakes = Array.isArray(saved.mistakes) ? saved.mistakes : [];
+    locked = false;
+    intro.classList.add("d-none");
+    levelSection.classList.add("d-none");
+    result.classList.add("d-none");
+    resumeSection.classList.add("d-none");
+    session.classList.remove("d-none");
     window.scrollTo({ top: 0, behavior: "smooth" });
     renderQuestion();
+    VB.toast(`Tiếp tục ${activeSet.title} tại câu ${Math.min(currentIndex + 1, questions.length)}/${questions.length}.`, "info");
   }
 
   function showSetSelection() {
@@ -343,6 +434,7 @@ document.addEventListener("DOMContentLoaded", () => {
     levelSection.classList.remove("d-none");
     renderLevelCards();
     renderTopicCards();
+    renderResumeCard();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -354,9 +446,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
     const bestScores = getBestScores();
     const key = scoreKey(activeSet.type, activeSet.key);
-    const best = Math.max(bestScore(bestScores, activeSet.type, activeSet.key), correctCount);
+    const best = Math.max(Math.min(bestScore(bestScores, activeSet.type, activeSet.key), total), correctCount);
     bestScores[key] = best;
     localStorage.setItem("vb_practice_best_v1", JSON.stringify(bestScores));
+    clearProgress();
 
     document.querySelector("#practiceResultLevel").textContent = `Hoàn thành ${activeSet.title}`;
     document.querySelector("#practiceResultCopy").textContent = `Bạn đã luyện đủ ${total} từ trong bộ ${activeSet.title} và trả lời đúng ${correctCount} từ.`;
@@ -400,6 +493,12 @@ document.addEventListener("DOMContentLoaded", () => {
     renderQuestion();
   });
 
+  resumeButton.addEventListener("click", resumePractice);
+  discardButton.addEventListener("click", () => {
+    clearProgress();
+    VB.toast("Đã xóa phiên luyện đang dở.", "info");
+  });
+
   document.querySelector("#leavePractice").addEventListener("click", showSetSelection);
   document.querySelector("#chooseAnotherLevel").addEventListener("click", showSetSelection);
   document.querySelector("#practiceAgain").addEventListener("click", () => startPractice(activeSet.type, activeSet.key));
@@ -418,4 +517,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderLevelCards();
   renderTopicCards();
+  renderResumeCard();
 });

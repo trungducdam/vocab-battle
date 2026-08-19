@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const query = search.value.trim().toLowerCase();
     const selectedLevel = activeBank === "public" ? level.value : "";
     const filtered = words.filter(item =>
-      (!query || `${item.word} ${item.meaning} ${item.example || ""} ${item.collocation || ""} ${item.topic || ""}`.toLowerCase().includes(query)) &&
+      (!query || `${item.word} ${item.meaning} ${(item.meanings || []).join(" ")} ${item.example || ""} ${item.collocation || ""} ${item.topic || ""} ${(item.topics || []).join(" ")}`.toLowerCase().includes(query)) &&
       (!selectedLevel || String(item.level) === selectedLevel)
     );
     const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <h5 class="mb-0">${escapeHtml(item.word)}</h5>
               ${idiomMode ? "" : `<span class="badge badge-soft-primary">CEFR ${escapeHtml(item.sourceLevel || item.level || "A1")}</span>`}
               <span class="badge badge-soft-success">${escapeHtml(item.category || item.partOfSpeech || "Từ vựng")}</span>
-              ${item.topic ? `<span class="badge practice-topic-badge">${escapeHtml(item.topic)}</span>` : ""}
+              ${item.topic ? `<span class="badge practice-topic-badge">${escapeHtml(item.topic)}${item.topics?.length > 1 ? ` +${item.topics.length - 1}` : ""}</span>` : ""}
             </div>
             <p class="text-muted-vb mb-0 mt-1">${escapeHtml(item.meaning)}</p>
           </div>

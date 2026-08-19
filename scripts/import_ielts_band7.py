@@ -165,8 +165,9 @@ def write_javascript(output: Path, topics, records) -> None:
     topic_json = json.dumps(topics, ensure_ascii=False, indent=2)
     record_json = json.dumps(records, ensure_ascii=False, indent=2)
     content = f"""// Generated from IELTS_C1_C2_26_Topics_40_Words_Each_VERIFIED.docx.
-// 26 topics x 40 entries = 1,040 verified C1/C2 records.
-// Source labels C1/C2 are mapped to C1 for the website filter and retained in sourceLevel.
+// 26 topics x 40 entries = 1,040 verified topic memberships.
+// Repeated terms across topics are normalized into canonical C1/C2 records below.
+// Hybrid C1/C2 labels are mapped to C1 for filtering and retained in sourceLevels.
 const replacedCefrLevels = new Set(["C1", "C2", "C1/C2"]);
 for (let index = vocabularySeed.length - 1; index >= 0; index -= 1) {{
   if (replacedCefrLevels.has(String(vocabularySeed[index].level || "").toUpperCase())) {{
@@ -178,7 +179,63 @@ const ieltsBand7Topics = {topic_json};
 
 const ieltsBand7Seed = {record_json};
 
-vocabularySeed.push(...ieltsBand7Seed.map(item => ({{ ...item }})));
+function normalizeIeltsValue(value) {{
+  return String(value || "")
+    .normalize("NFKC")
+    .replace(/[’‘]/g, "'")
+    .replace(/\\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}}
+
+const normalizedIeltsByKey = new Map();
+
+ieltsBand7Seed.forEach(item => {{
+  const canonicalKey = normalizeIeltsValue(item.word);
+  const existing = normalizedIeltsByKey.get(canonicalKey);
+  const membership = {{
+    topicKey: item.topicKey,
+    topic: item.topic,
+    sourceKey: item.sourceKey,
+    sourceLevel: item.sourceLevel,
+    level: item.level,
+    meaning: item.meaning,
+    partOfSpeech: item.partOfSpeech,
+    category: item.category
+  }};
+
+  if (!existing) {{
+    normalizedIeltsByKey.set(canonicalKey, {{
+      ...item,
+      id: `ielts-canonical-${{normalizedIeltsByKey.size + 1}}`,
+      sourceKey: `ielts-canonical:${{canonicalKey}}`,
+      topicKeys: [item.topicKey],
+      topics: [item.topic],
+      levels: [item.level],
+      sourceLevels: [item.sourceLevel],
+      meanings: [item.meaning],
+      topicMemberships: [membership]
+    }});
+    return;
+  }}
+
+  if (!existing.topicKeys.includes(item.topicKey)) existing.topicKeys.push(item.topicKey);
+  if (!existing.topics.includes(item.topic)) existing.topics.push(item.topic);
+  if (!existing.levels.includes(item.level)) existing.levels.push(item.level);
+  if (!existing.sourceLevels.includes(item.sourceLevel)) existing.sourceLevels.push(item.sourceLevel);
+  if (!existing.meanings.some(meaning => normalizeIeltsValue(meaning) === normalizeIeltsValue(item.meaning))) existing.meanings.push(item.meaning);
+  existing.topicMemberships.push(membership);
+}});
+
+const normalizedIeltsBand7Seed = [...normalizedIeltsByKey.values()].map(item => ({{
+  ...item,
+  level: item.levels.includes("C2") ? "C2" : "C1",
+  topicKey: item.topicKeys[0],
+  topic: item.topics[0],
+  sourceLevel: item.sourceLevels.join(" · ")
+}}));
+
+vocabularySeed.push(...normalizedIeltsBand7Seed);
 """
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(content, encoding="utf-8", newline="\n")

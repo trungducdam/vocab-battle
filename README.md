@@ -10,7 +10,7 @@
   <img src="assets/images/pororo.jpg" width="120" alt="Pororo Vocab Battle">
 </p>
 
-**Pororo Vocab Battle** là website học từ vựng tiếng Anh theo hình thức thi đấu 1v1. Người chơi có thể lựa chọn kho từ, số lượng câu hỏi và loại phòng trước khi bước vào trận đấu mô phỏng với hệ thống HP, điểm số và bộ đếm thời gian.
+**Pororo Vocab Battle** là website học từ vựng tiếng Anh theo hình thức thi đấu 1v1. Người chơi có thể lựa chọn kho từ, số lượng câu hỏi, độ khó bot và loại phòng trước khi bước vào trận đấu mô phỏng với hệ thống HP, điểm số và bộ đếm thời gian.
 
 Ngoài thi đấu, website có chế độ **Luyện tập theo bậc CEFR và chủ đề IELTS**, cho phép người học ôn toàn bộ từ của A1-C2 hoặc chọn một trong 26 chủ đề Band 7.0+ trong phiên không giới hạn thời gian.
 
@@ -35,14 +35,18 @@ Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằn
 - Tạo trận **public** hoặc phòng **private**.
 - Phản hồi đúng/sai bằng hiệu ứng ánh sáng, xung kích và pháo giấy; bộ đếm chuỗi có hiệu ứng tăng cấp ở các mốc liên tiếp.
 - Ba chế độ: **10 câu, 50 câu và 100 câu**.
+- Ba độ khó bot: **Easy, Normal và Hard**, với độ chính xác, tốc độ trả lời và sát thương khác nhau; độ khó của từ theo CEFR cũng ảnh hưởng đến bot.
 - HP, sát thương và điểm số được điều chỉnh theo từng chế độ.
+- Chỉ câu trả lời đúng mới gây sát thương lên đối thủ; trả lời sai không tự trừ HP.
+- Trận đấu luôn chạy đủ số câu đã chọn; HP chỉ được so sánh khi kết thúc, sau đó dùng điểm và số câu đúng để phá hòa.
 - Hai người chơi được thiết kế để nhận cùng câu hỏi theo cùng thứ tự.
-- Màn hình trận đấu có timer, thanh HP, điểm số, tiến trình và kết quả.
+- Màn hình trận đấu có timer, thanh HP, điểm số, tiến trình, animation bot chọn A/B/C/D và sát thương từ bot.
 - Hỗ trợ trả lời bằng chuột hoặc phím `A`, `B`, `C`, `D`.
 
 ### Kho từ vựng chung
 
-- 1.240 mục từ từ cấp độ **A1 đến C2**, gồm 200 mục A1-B2 và 1.040 mục IELTS C1-C2 theo chủ đề.
+- 772 mục từ chuẩn hóa từ cấp độ **A1 đến C2**, gồm 200 mục A1-B2 và 572 mục C1-C2 không trùng từ.
+- Dữ liệu IELTS vẫn giữ đủ 1.040 lượt gắn từ vào 26 chủ đề; một từ dùng chung cho nhiều chủ đề chỉ xuất hiện một lần trong kho chung.
 - Bộ lọc riêng cho A1, A2, B1, B2, C1 và C2.
 - Tìm kiếm theo từ, nghĩa hoặc câu ví dụ.
 - Nhấn vào từ để xem IPA UK/US từ nguồn mở và mở liên kết kiểm chứng trên Cambridge Dictionary.
@@ -61,7 +65,7 @@ Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằn
 ### Luyện tập theo bậc CEFR và chủ đề IELTS
 
 - Chọn một trong sáu bậc A1, A2, B1, B2, C1 hoặc C2.
-- Luyện toàn bộ từ đang có trong bậc đã chọn; dữ liệu nâng cao gồm 780 mục C1 và 260 mục C2.
+- Luyện toàn bộ từ đang có trong bậc đã chọn; dữ liệu chuẩn hóa hiện có 487 mục C1 và 85 mục C2.
 - Chọn riêng một trong **26 chủ đề IELTS**, mỗi chủ đề có 40 từ hoặc cụm từ.
 - Đáp án nhiễu ưu tiên nghĩa cùng loại từ, cùng chủ đề và có độ dài gần nhau để tăng độ khó.
 - Từ/cụm từ tự điều chỉnh cỡ chữ theo độ dài; đáp án đúng và sai có hiệu ứng phản hồi riêng, đồng thời tôn trọng cài đặt giảm chuyển động của thiết bị.
@@ -71,6 +75,8 @@ Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằn
 - Không giới hạn thời gian, phù hợp để học và ghi nhớ thay vì thi đấu.
 - Phản hồi ngay sau mỗi câu, luôn kèm nghĩa đúng và hiển thị câu ví dụ khi dữ liệu nguồn có cung cấp.
 - Theo dõi số câu đúng, sai, độ chính xác và tiến độ của phiên.
+- Tự động lưu bộ từ, thứ tự câu, vị trí hiện tại, số câu đúng/sai, danh sách trả lời sai và thời điểm cập nhật.
+- Có thể quay lại bằng thẻ **Continue [tên bộ] — x/y** hoặc chủ động xóa phiên đang dở.
 - Lưu điểm tốt nhất theo từng bậc trên trình duyệt và liệt kê các từ cần ôn lại.
 
 ### Tài khoản và phân quyền
@@ -103,7 +109,8 @@ Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằn
 | JavaScript ES6+ | State, tương tác, gameplay và phân quyền demo |
 | Bootstrap 5 | Grid, modal, navbar và component giao diện |
 | Bootstrap Icons | Hệ thống icon |
-| LocalStorage | Lưu tài khoản, kho từ và cấu hình trận demo |
+| LocalStorage | Lưu tài khoản, kho từ, điểm luyện và phiên luyện đang dở |
+| SessionStorage | Lưu cấu hình và thứ tự câu hỏi của trận demo hiện tại |
 | Mammoth.js | Đọc nội dung file DOCX |
 | PDF.js | Trích xuất văn bản từ file PDF |
 
@@ -148,12 +155,13 @@ OTP demo: 123456
 2. Mở **Kho từ vựng** để tìm kiếm, lọc CEFR hoặc xem idioms.
 3. Nhấn vào từng từ để xem phiên âm, liên kết Cambridge và câu ví dụ.
 4. Mở **Luyện tập**, chọn một bậc CEFR hoặc một trong 26 chủ đề IELTS để ôn toàn bộ bộ từ đó.
-5. User có thể tạo kho riêng bằng cách thêm từ hoặc tải DOCX/PDF.
-6. Trở về trang chủ và chọn 10, 50 hoặc 100 câu.
-7. Chọn kho chung hoặc kho riêng.
+5. Nếu thoát giữa chừng, dùng thẻ **Continue** để trở lại đúng vị trí và thứ tự câu trước đó.
+6. User có thể tạo kho riêng bằng cách thêm từ hoặc tải DOCX/PDF.
+7. Trở về trang chủ và chọn 10, 50 hoặc 100 câu, kho từ và độ khó bot.
 8. Tạo trận public hoặc phòng private.
-9. Bắt đầu trận đấu mô phỏng và trả lời bằng chuột hoặc bàn phím.
-10. Xem hồ sơ và bảng xếp hạng sau trận.
+9. Bắt đầu trận đấu mô phỏng, quan sát bot chọn đáp án và trả lời bằng chuột hoặc bàn phím.
+10. Hoàn thành đủ số câu để nhận kết quả dựa trên HP cuối trận.
+11. Xem hồ sơ và bảng xếp hạng sau trận.
 
 ## Cấu trúc thư mục
 
@@ -178,7 +186,7 @@ vocab-battle-frontend/
         ├── app.js              # Layout, toast và chuyển trang
         ├── auth.js             # Authentication demo
         ├── home.js             # Thiết lập trận từ trang chủ
-        ├── battle-config.js    # Cấu hình 10/50/100 câu
+        ├── battle-config.js    # Cấu hình số câu, HP và độ khó bot
         ├── room.js             # Logic phòng chờ
         ├── battle.js           # Gameplay mô phỏng
         ├── practice.js         # Câu hỏi theo bậc/chủ đề và kết quả luyện
@@ -186,7 +194,7 @@ vocab-battle-frontend/
         ├── word-bank.js        # Kho chung/kho riêng
         ├── pronunciation-data.js # IPA UK/US rút gọn cho dữ liệu của web
         ├── vocabulary-data.js  # 200 từ nền A1-B2
-        ├── ielts-band7-data.js # 1.040 mục C1-C2 thuộc 26 chủ đề IELTS
+        ├── ielts-band7-data.js # 1.040 lượt chủ đề, chuẩn hóa thành 572 mục C1-C2
         ├── vocabulary-examples.js
         └── idiom-data.js       # 100 idioms
 ```
@@ -201,7 +209,7 @@ vocab-battle-frontend/
 - OTP chưa được gửi qua email thật.
 - Role Admin/User chưa được xác thực bởi máy chủ.
 - Phòng public/private chưa kết nối hai thiết bị khác nhau.
-- Trận đấu hiện chạy với bot thay vì SignalR realtime.
+- Trận đấu hiện chạy với bot mô phỏng theo ba độ khó thay vì SignalR realtime.
 - PDF scan chỉ chứa hình ảnh chưa hỗ trợ OCR.
 
 Không lưu token production, role hoặc đáp án đúng trong `localStorage`. Các dữ liệu quan trọng phải được backend kiểm tra và quyết định.

@@ -1,7 +1,14 @@
 function getPublicVocabulary() {
-  const storageKey = "vb_words_v6";
+  const storageKey = "vb_words_v8";
   const wordKey = item => item.sourceKey || `${item.level}|${item.word}`.toLowerCase();
-  const current = JSON.parse(localStorage.getItem(storageKey) || "null");
+  const safeRead = key => {
+    try {
+      return JSON.parse(localStorage.getItem(key) || "null");
+    } catch {
+      return null;
+    }
+  };
+  const current = safeRead(storageKey);
   const seedByKey = new Map(vocabularySeed.map(item => [wordKey(item), item]));
   if (Array.isArray(current)) {
     const hydrated = current.map(item => {
@@ -17,11 +24,13 @@ function getPublicVocabulary() {
     return hydrated;
   }
 
-  const previousV5 = JSON.parse(localStorage.getItem("vb_words_v5") || "null");
-  const previousV4 = JSON.parse(localStorage.getItem("vb_words_v4") || "null");
-  const previousV3 = JSON.parse(localStorage.getItem("vb_words_v3") || "null");
-  const legacy = JSON.parse(localStorage.getItem("vb_words_v2") || "null");
-  const previousWords = [previousV5, previousV4, previousV3, legacy].find(Array.isArray);
+  const previousV7 = safeRead("vb_words_v7");
+  const previousV6 = safeRead("vb_words_v6");
+  const previousV5 = safeRead("vb_words_v5");
+  const previousV4 = safeRead("vb_words_v4");
+  const previousV3 = safeRead("vb_words_v3");
+  const legacy = safeRead("vb_words_v2");
+  const previousWords = [previousV7, previousV6, previousV5, previousV4, previousV3, legacy].find(Array.isArray);
   const hasPreviousWords = Array.isArray(previousWords);
   const isReplacedCefrSeed = item => {
     const sourceKey = String(item.sourceKey || "").toLowerCase();
@@ -59,7 +68,7 @@ function getPublicVocabulary() {
 }
 
 function savePublicVocabulary(words) {
-  localStorage.setItem("vb_words_v6", JSON.stringify(words));
+  localStorage.setItem("vb_words_v8", JSON.stringify(words));
 }
 
 function getPublicIdioms() {
