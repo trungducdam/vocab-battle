@@ -47,6 +47,43 @@
       </div>
     </section>
 
+    <section class="practice-mode-section" id="practiceModeSection">
+      <div class="container">
+        <div class="practice-mode-panel">
+          <div class="practice-mode-heading">
+            <div>
+              <span class="eyebrow"><i class="bi bi-ui-checks-grid"></i> Dạng câu hỏi</span>
+              <h2 class="h4 mt-2 mb-1">Bạn muốn luyện theo cách nào?</h2>
+            </div>
+            <p class="text-muted-vb mb-0">Chế độ hỗn hợp sẽ luân phiên nhiều dạng bài trong cùng một phiên.</p>
+          </div>
+          <div class="practice-mode-options" role="radiogroup" aria-label="Chọn dạng câu hỏi luyện tập">
+            <button class="practice-mode-option is-active" type="button" data-practice-mode="mixed" role="radio" aria-checked="true">
+              <i class="bi bi-shuffle"></i><span>Hỗn hợp</span>
+            </button>
+            <button class="practice-mode-option" type="button" data-practice-mode="en-vi" role="radio" aria-checked="false">
+              <i class="bi bi-translate"></i><span>Anh → Việt</span>
+            </button>
+            <button class="practice-mode-option" type="button" data-practice-mode="vi-en" role="radio" aria-checked="false">
+              <i class="bi bi-arrow-left-right"></i><span>Việt → Anh</span>
+            </button>
+            <button class="practice-mode-option" type="button" data-practice-mode="typing" role="radio" aria-checked="false">
+              <i class="bi bi-keyboard-fill"></i><span>Nhập từ</span>
+            </button>
+            <button class="practice-mode-option" type="button" data-practice-mode="fill-blank" role="radio" aria-checked="false">
+              <i class="bi bi-input-cursor-text"></i><span>Điền vào câu</span>
+            </button>
+            <button class="practice-mode-option" type="button" data-practice-mode="listening" role="radio" aria-checked="false">
+              <i class="bi bi-volume-up-fill"></i><span>Nghe &amp; chọn</span>
+            </button>
+            <button class="practice-mode-option" type="button" data-practice-mode="matching" role="radio" aria-checked="false">
+              <i class="bi bi-intersect"></i><span>Ghép cặp</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="pb-5" id="practiceLevelSection">
       <div class="container">
         <div class="practice-section-heading">
@@ -72,6 +109,7 @@
         <div class="practice-toolbar">
           <div>
             <span class="badge badge-soft-primary rounded-pill px-3 py-2" id="practiceLevelBadge">CEFR A1</span>
+            <span class="badge badge-soft-info rounded-pill px-3 py-2 ms-1" id="practiceModeBadge">Hỗn hợp</span>
             <strong class="ms-2" id="practiceRoundLabel">Từ 1/50</strong>
           </div>
           <button class="btn btn-sm btn-outline-vb rounded-pill px-3" id="leavePractice" type="button"><i class="bi bi-grid me-1"></i>Đổi bộ luyện</button>
@@ -88,10 +126,27 @@
         </div>
 
         <section class="question-card practice-question-card text-center mx-auto" aria-labelledby="practiceWord">
-          <p class="text-muted-vb text-uppercase fw-bold mb-0">Chọn nghĩa đúng của từ</p>
+          <p class="text-muted-vb text-uppercase fw-bold mb-0" id="practicePromptLabel">Chọn nghĩa đúng của từ</p>
           <div class="practice-word-meta mt-3"><span id="practiceCategory">Danh từ</span></div>
           <h2 class="battle-word" id="practiceWord">APPLE</h2>
+          <button class="practice-listen-button d-none" id="practiceListenButton" type="button" aria-label="Nghe lại từ tiếng Anh">
+            <i class="bi bi-volume-up-fill"></i><span>Nghe lại</span>
+          </button>
           <div class="row g-3" id="practiceAnswers"></div>
+
+          <form class="practice-typing-form d-none" id="practiceTypingForm" autocomplete="off">
+            <label class="visually-hidden" for="practiceTypingInput">Nhập đáp án tiếng Anh</label>
+            <input class="form-control" id="practiceTypingInput" type="text" inputmode="text" spellcheck="false" placeholder="Nhập từ tiếng Anh...">
+            <button class="btn btn-vb rounded-pill px-4" id="practiceTypingSubmit" type="submit"><i class="bi bi-check-lg me-1"></i>Kiểm tra</button>
+          </form>
+
+          <div class="practice-matching-board d-none" id="practiceMatchingBoard">
+            <p class="practice-matching-status" id="practiceMatchingStatus" aria-live="polite">Chọn một từ, sau đó chọn nghĩa tương ứng.</p>
+            <div class="practice-matching-columns">
+              <div class="practice-matching-column" id="practiceMatchingWords" aria-label="Danh sách từ tiếng Anh"></div>
+              <div class="practice-matching-column" id="practiceMatchingMeanings" aria-label="Danh sách nghĩa tiếng Việt"></div>
+            </div>
+          </div>
 
           <div class="practice-feedback d-none" id="practiceFeedback">
             <div class="practice-feedback-heading" id="practiceFeedbackHeading"></div>

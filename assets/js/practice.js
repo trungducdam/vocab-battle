@@ -8,25 +8,49 @@ document.addEventListener("DOMContentLoaded", () => {
     C1: { title: "Nâng cao", description: "Chinh phục vốn từ học thuật và IELTS chuyên sâu.", icon: "bi-5-circle-fill" },
     C2: { title: "Thành thạo", description: "Luyện sắc thái học thuật và thuật ngữ chuyên biệt.", icon: "bi-6-circle-fill" }
   };
+  const practiceModes = {
+    mixed: { label: "Hỗn hợp", icon: "bi-shuffle" },
+    "en-vi": { label: "Anh → Việt", icon: "bi-translate" },
+    "vi-en": { label: "Việt → Anh", icon: "bi-arrow-left-right" },
+    typing: { label: "Nhập từ", icon: "bi-keyboard-fill" },
+    "fill-blank": { label: "Điền vào câu", icon: "bi-input-cursor-text" },
+    listening: { label: "Nghe & chọn", icon: "bi-volume-up-fill" },
+    matching: { label: "Ghép cặp", icon: "bi-intersect" }
+  };
+  const mixedModeCycle = ["en-vi", "vi-en", "typing", "listening", "fill-blank"];
+  const progressStorageKey = "vb_practice_progress_v1";
+  const modeStorageKey = "vb_practice_mode_v1";
 
   const topics = typeof ieltsBand7Topics === "undefined" ? [] : ieltsBand7Topics;
   const publicWords = getPublicVocabulary();
   const levelGrid = document.querySelector("#practiceLevelGrid");
   const topicGrid = document.querySelector("#practiceTopicGrid");
   const intro = document.querySelector("#practiceIntro");
+  const modeSection = document.querySelector("#practiceModeSection");
+  const modeButtons = [...document.querySelectorAll("[data-practice-mode]")];
   const levelSection = document.querySelector("#practiceLevelSection");
   const session = document.querySelector("#practiceSession");
   const result = document.querySelector("#practiceResult");
   const answers = document.querySelector("#practiceAnswers");
   const questionCard = document.querySelector(".practice-question-card");
+  const promptLabel = document.querySelector("#practicePromptLabel");
   const wordLabel = document.querySelector("#practiceWord");
   const categoryLabel = document.querySelector("#practiceCategory");
   const levelBadge = document.querySelector("#practiceLevelBadge");
+  const modeBadge = document.querySelector("#practiceModeBadge");
   const roundLabel = document.querySelector("#practiceRoundLabel");
   const progressBar = document.querySelector("#practiceProgressBar");
   const correctLabel = document.querySelector("#practiceCorrect");
   const wrongLabel = document.querySelector("#practiceWrong");
   const accuracyLabel = document.querySelector("#practiceAccuracy");
+  const listenButton = document.querySelector("#practiceListenButton");
+  const typingForm = document.querySelector("#practiceTypingForm");
+  const typingInput = document.querySelector("#practiceTypingInput");
+  const typingSubmit = document.querySelector("#practiceTypingSubmit");
+  const matchingBoard = document.querySelector("#practiceMatchingBoard");
+  const matchingWords = document.querySelector("#practiceMatchingWords");
+  const matchingMeanings = document.querySelector("#practiceMatchingMeanings");
+  const matchingStatus = document.querySelector("#practiceMatchingStatus");
   const feedback = document.querySelector("#practiceFeedback");
   const feedbackHeading = document.querySelector("#practiceFeedbackHeading");
   const feedbackWord = document.querySelector("#practiceFeedbackWord");
@@ -39,14 +63,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const resumeMeta = document.querySelector("#practiceResumeMeta");
   const resumeButton = document.querySelector("#resumePractice");
   const discardButton = document.querySelector("#discardPractice");
-  const progressStorageKey = "vb_practice_progress_v1";
 
+  const storedMode = localStorage.getItem(modeStorageKey);
+  let selectedMode = practiceModes[storedMode] ? storedMode : "mixed";
+  let activeMode = selectedMode;
   let activeSet = null;
   let questions = [];
   let currentIndex = 0;
   let correctCount = 0;
+  let wrongCount = 0;
   let mistakes = [];
   let locked = false;
+  let matchingLocked = false;
+  let awaitingMatchingAdvance = false;
+  let selectedMatchingWordId = "";
+  let selectedMatchingMeaningId = "";
+  let matchingSolvedIds = new Set();
+  let matchingFailedIds = new Set();
+  let matchingMeaningOrder = [];
 
   function escapeHtml(value) {
     return String(value ?? "").replace(/[&<>'"]/g, character => ({
@@ -69,7 +103,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function pronunciationMarkup(term) {
     const pronunciation = typeof VBPronunciation === "undefined" ? null : VBPronunciation.get(term);
-    const cambridgeUrl = typeof VBPronunciation === "undefined" ? "https://dictionary.cambridge.org/vi/dictionary/english/" : VBPronunciation.cambridgeUrl(term);
+    const cambridgeUrl = typeof VBPronunciation === "undefined"
+      ? "https://dictionary.cambridge.org/vi/dictionary/english/"
+      : VBPronunciation.cambridgeUrl(term);
     const variants = [
       pronunciation?.uk ? `<span class="pronunciation-variant"><b>UK</b> <span class="ipa-text">${escapeHtml(pronunciation.uk)}</span></span>` : "",
       pronunciation?.us ? `<span class="pronunciation-variant"><b>US</b> <span class="ipa-text">${escapeHtml(pronunciation.us)}</span></span>` : ""
@@ -126,14 +162,59 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  function scoreKey(type, key) {
-    return `${type}:${key}`;
+  function modeLabel(mode) {
+    return practiceModes[mode]?.label || practiceModes["en-vi"].label;
   }
 
-  function bestScore(bestScores, type, key) {
-    const current = bestScores[scoreKey(type, key)];
+  function scoreKey(type, key, mode = selectedMode) {
+    return `${type}:${key}:${mode}`;
+  }
+
+  function bestScore(bestScores, type, key, mode = selectedMode) {
+    const current = bestScores[scoreKey(type, key, mode)];
     if (current !== undefined) return Number(current || 0);
-    return type === "level" ? Number(bestScores[key] || 0) : 0;
+    if (mode === "en-vi") {
+      const legacy = bestScores[`${type}:${key}`];
+      if (legacy !== undefined) return Number(legacy || 0);
+      return type === "level" ? Number(bestScores[key] || 0) : 0;
+    }
+    return 0;
+  }
+
+  function normalizeAnswer(value) {
+    return String(value || "")
+      .normalize("NFKC")
+      .toLocaleLowerCase("en")
+      .replace(/[‘’]/g, "'")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function createCloze(entry) {
+    const word = String(entry.word || "").trim();
+    if (!word) return null;
+    const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(`(^|[^A-Za-z])(${escapedWord})(?=$|[^A-Za-z])`, "i");
+    const sources = [
+      { text: entry.example, label: "Ví dụ" },
+      { text: entry.collocation, label: "Collocation" }
+    ];
+    for (const source of sources) {
+      const sourceText = String(source.text || "").trim();
+      if (!sourceText || !pattern.test(sourceText)) continue;
+      return {
+        sentence: sourceText.replace(pattern, (_match, prefix) => `${prefix}_____`),
+        original: sourceText,
+        label: source.label
+      };
+    }
+    return null;
+  }
+
+  function wordsAvailableForMode(practiceSet, mode = selectedMode) {
+    if (!practiceSet) return [];
+    if (mode === "fill-blank") return practiceSet.words.filter(entry => createCloze(entry));
+    return practiceSet.words;
   }
 
   function getSavedProgress() {
@@ -148,11 +229,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function saveProgress(nextIndex = currentIndex) {
+  function saveProgress(savedIndex = currentIndex, answeredCount = savedIndex) {
     if (!activeSet || !questions.length) return;
-    const answered = Math.max(0, Math.min(nextIndex, questions.length));
+    const safeIndex = Math.max(0, Math.min(savedIndex, questions.length));
+    const safeAnswered = Math.max(0, Math.min(answeredCount, questions.length));
     localStorage.setItem(progressStorageKey, JSON.stringify({
-      version: 1,
+      version: 2,
+      mode: activeMode,
       activeSet: {
         type: activeSet.type,
         key: activeSet.key,
@@ -160,10 +243,16 @@ document.addEventListener("DOMContentLoaded", () => {
         badge: activeSet.badge
       },
       questions,
-      currentIndex: answered,
+      currentIndex: safeIndex,
+      answeredCount: safeAnswered,
       correctCount,
-      wrongCount: Math.max(0, answered - correctCount),
+      wrongCount,
       mistakes,
+      matching: activeMode === "matching" ? {
+        solvedIds: [...matchingSolvedIds],
+        failedIds: [...matchingFailedIds],
+        meaningOrder: matchingMeaningOrder
+      } : null,
       updatedAt: new Date().toISOString()
     }));
     renderResumeCard();
@@ -176,29 +265,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderResumeCard() {
     const saved = getSavedProgress();
-    resumeSection.classList.toggle("d-none", !saved || !session.classList.contains("d-none") || !result.classList.contains("d-none"));
+    const shouldShow = saved && session.classList.contains("d-none") && result.classList.contains("d-none");
+    resumeSection.classList.toggle("d-none", !shouldShow);
     if (!saved) return;
-    const answered = Math.min(saved.currentIndex, saved.questions.length);
+    const answered = Math.min(Number(saved.answeredCount ?? saved.currentIndex) || 0, saved.questions.length);
     const updated = saved.updatedAt ? new Date(saved.updatedAt) : null;
+    const savedMode = practiceModes[saved.mode] ? saved.mode : "en-vi";
     resumeTitle.textContent = `Continue ${saved.activeSet.title} — ${answered}/${saved.questions.length}`;
-    resumeMeta.textContent = `${saved.correctCount || 0} đúng · ${saved.wrongCount || 0} sai${updated && !Number.isNaN(updated.getTime()) ? ` · Cập nhật ${updated.toLocaleString("vi-VN")}` : ""}`;
+    resumeMeta.textContent = `${modeLabel(savedMode)} · ${saved.correctCount || 0} đúng · ${saved.wrongCount || 0} sai${updated && !Number.isNaN(updated.getTime()) ? ` · Cập nhật ${updated.toLocaleString("vi-VN")}` : ""}`;
+  }
+
+  function updateModeSelection() {
+    modeButtons.forEach(button => {
+      const isActive = button.dataset.practiceMode === selectedMode;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-checked", String(isActive));
+    });
+  }
+
+  function setSelectedMode(mode) {
+    if (!practiceModes[mode]) return;
+    selectedMode = mode;
+    localStorage.setItem(modeStorageKey, mode);
+    updateModeSelection();
+    renderLevelCards();
+    renderTopicCards();
   }
 
   function renderLevelCards() {
     const bestScores = getBestScores();
     levelGrid.innerHTML = levels.map(level => {
-      const count = wordsForLevel(level).length;
+      const practiceSet = getPracticeSet("level", level);
+      const count = wordsAvailableForMode(practiceSet).length;
       const best = Math.min(bestScore(bestScores, "level", level), count);
       const detail = levelDetails[level];
+      const unavailable = count < 4;
+      const countCopy = selectedMode === "fill-blank" ? `${count} câu có ví dụ` : `${count} từ`;
       return `
-        <button class="practice-level-card" type="button" data-practice-level="${level}" aria-label="Luyện ${count} từ bậc ${level}">
+        <button class="practice-level-card${unavailable ? " is-unavailable" : ""}" type="button" data-practice-level="${level}" ${unavailable ? "disabled" : ""} aria-label="${unavailable ? `Bậc ${level} chưa đủ câu ví dụ cho dạng điền từ` : `Luyện ${count} từ bậc ${level} bằng dạng ${modeLabel(selectedMode)}`}">
           <span class="practice-level-icon"><i class="bi ${detail.icon}"></i></span>
           <span class="practice-level-code">${level}</span>
           <strong>${detail.title}</strong>
-          <span class="practice-level-description">${detail.description}</span>
+          <span class="practice-level-description">${unavailable ? "Chưa đủ câu ví dụ chứa từ cần điền." : detail.description}</span>
           <span class="practice-level-footer">
-            <span><i class="bi bi-collection me-1"></i>${count} từ</span>
-            <span>${best ? `Tốt nhất ${best}/${count}` : "Chưa luyện"}</span>
+            <span><i class="bi bi-collection me-1"></i>${countCopy}</span>
+            <span>${best ? `Tốt nhất ${best}/${count}` : unavailable ? "Chưa khả dụng" : "Chưa luyện"}</span>
           </span>
         </button>`;
     }).join("");
@@ -207,27 +318,31 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderTopicCards() {
     const bestScores = getBestScores();
     topicGrid.innerHTML = topics.map(topic => {
-      const count = wordsForTopic(topic.key).length;
+      const practiceSet = getPracticeSet("topic", topic.key);
+      const count = wordsAvailableForMode(practiceSet).length;
       const best = Math.min(bestScore(bestScores, "topic", topic.key), count);
+      const unavailable = count < 4;
+      const countCopy = selectedMode === "fill-blank" ? `${count} câu có ví dụ` : `${count} từ`;
       return `
-        <button class="practice-topic-card" type="button" data-practice-topic="${topic.key}" aria-label="Luyện ${count} từ chủ đề ${escapeHtml(topic.name)}">
+        <button class="practice-topic-card${unavailable ? " is-unavailable" : ""}" type="button" data-practice-topic="${topic.key}" ${unavailable ? "disabled" : ""} aria-label="${unavailable ? `Chủ đề ${escapeHtml(topic.name)} chưa đủ câu ví dụ cho dạng điền từ` : `Luyện ${count} từ chủ đề ${escapeHtml(topic.name)} bằng dạng ${modeLabel(selectedMode)}`}">
           <span class="practice-topic-number">${String(topic.number).padStart(2, "0")}</span>
           <span class="practice-topic-icon"><i class="bi ${topic.icon}"></i></span>
           <span class="practice-topic-copy">
             <strong>${escapeHtml(topic.name)}</strong>
-            <span>${count} từ · ${best ? `Tốt nhất ${best}/${count}` : "Chưa luyện"}</span>
+            <span>${countCopy} · ${best ? `Tốt nhất ${best}/${count}` : unavailable ? "Chưa khả dụng" : "Chưa luyện"}</span>
           </span>
           <i class="bi bi-arrow-right-short practice-topic-arrow" aria-hidden="true"></i>
         </button>`;
     }).join("");
   }
 
-  function uniqueDistractors(entry, setWords) {
+  function uniqueDistractors(entry, setWords, field) {
     const selected = [];
-    const entryWord = String(entry.word || "").trim().toLowerCase();
-    const usedMeanings = new Set([String(entry.meaning || "").trim().toLowerCase()]);
-    const entryCategory = String(entry.category || entry.partOfSpeech || "").trim().toLowerCase();
-    const entryMeaningLength = String(entry.meaning || "").trim().length;
+    const targetValue = normalizeAnswer(entry[field]);
+    const usedValues = new Set([targetValue]);
+    const entryWord = normalizeAnswer(entry.word);
+    const entryCategory = normalizeAnswer(entry.category || entry.partOfSpeech);
+    const targetLength = String(entry[field] || "").trim().length;
     const candidateMap = new Map();
     [...setWords, ...publicWords].forEach(candidate => {
       const key = candidate.sourceKey || candidate.id || `${candidate.level}|${candidate.word}|${candidate.meaning}`;
@@ -235,8 +350,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const candidates = [...candidateMap.values()];
-    const categoryOf = candidate => String(candidate.category || candidate.partOfSpeech || "").trim().toLowerCase();
-    const hasSimilarLength = candidate => Math.abs(entryMeaningLength - String(candidate.meaning || "").trim().length) <= 12;
+    const categoryOf = candidate => normalizeAnswer(candidate.category || candidate.partOfSpeech);
+    const hasSimilarLength = candidate => Math.abs(targetLength - String(candidate[field] || "").trim().length) <= 12;
     const entryTopicKeys = new Set(entry.topicKeys || [entry.topicKey].filter(Boolean));
     const sameTopic = candidate => (candidate.topicKeys || [candidate.topicKey].filter(Boolean)).some(key => entryTopicKeys.has(key));
     const sameCategory = candidate => Boolean(entryCategory && categoryOf(candidate) === entryCategory);
@@ -252,33 +367,68 @@ document.addEventListener("DOMContentLoaded", () => {
 
     for (const predicate of priorityPredicates) {
       for (const candidate of shuffle(candidates.filter(predicate))) {
-        const candidateWord = String(candidate.word || "").trim().toLowerCase();
-        const meaningKey = String(candidate.meaning || "").trim().toLowerCase();
-        if (!meaningKey || candidateWord === entryWord || usedMeanings.has(meaningKey)) continue;
-        usedMeanings.add(meaningKey);
-        selected.push(candidate.meaning);
+        const candidateWord = normalizeAnswer(candidate.word);
+        const candidateValue = normalizeAnswer(candidate[field]);
+        if (!candidateValue || candidateWord === entryWord || usedValues.has(candidateValue)) continue;
+        usedValues.add(candidateValue);
+        selected.push(candidate[field]);
         if (selected.length === 3) return selected;
       }
     }
     return selected;
   }
 
-  function buildQuestions(practiceSet) {
-    return shuffle(practiceSet.words).map(entry => {
-      const options = shuffle([
-        { text: entry.meaning, correct: true },
-        ...uniqueDistractors(entry, practiceSet.words).map(meaning => ({ text: meaning, correct: false }))
-      ]);
-      return {
-        word: entry.word,
-        meaning: entry.meaning,
-        example: entry.example || "",
-        collocation: entry.collocation || "",
-        category: entry.category || entry.partOfSpeech || "Từ vựng",
-        answers: options.map(option => option.text),
-        correct: options.findIndex(option => option.correct)
-      };
-    });
+  function modeForMixedQuestion(entry, index) {
+    const compatible = mixedModeCycle.filter(mode => mode !== "fill-blank" || createCloze(entry));
+    return compatible[index % compatible.length];
+  }
+
+  function buildQuestion(entry, mode, setWords, index) {
+    const questionMode = mode === "mixed" ? modeForMixedQuestion(entry, index) : mode;
+    const question = {
+      id: `${index}-${entry.sourceKey || entry.id || `${entry.level}|${entry.word}|${entry.meaning}`}`,
+      mode: questionMode,
+      word: entry.word,
+      meaning: entry.meaning,
+      example: entry.example || "",
+      collocation: entry.collocation || "",
+      category: entry.category || entry.partOfSpeech || "Từ vựng",
+      answers: [],
+      correct: -1
+    };
+
+    if (questionMode === "fill-blank") {
+      const cloze = createCloze(entry);
+      question.clozeSentence = cloze?.sentence || "";
+      question.clozeSource = cloze?.original || "";
+      question.clozeLabel = cloze?.label || "Ví dụ";
+      return question;
+    }
+
+    if (questionMode === "typing" || questionMode === "matching") return question;
+
+    const field = questionMode === "en-vi" ? "meaning" : "word";
+    const options = shuffle([
+      { text: entry[field], correct: true },
+      ...uniqueDistractors(entry, setWords, field).map(value => ({ text: value, correct: false }))
+    ]);
+    question.answers = options.map(option => option.text);
+    question.correct = options.findIndex(option => option.correct);
+    return question;
+  }
+
+  function buildQuestions(practiceSet, mode) {
+    const availableWords = wordsAvailableForMode(practiceSet, mode);
+    return shuffle(availableWords).map((entry, index) => buildQuestion(entry, mode, availableWords, index));
+  }
+
+  function normalizeSavedQuestions(savedQuestions) {
+    return savedQuestions.map((question, index) => ({
+      ...question,
+      id: question.id || `${index}-${question.word}|${question.meaning}`,
+      mode: practiceModes[question.mode] && question.mode !== "mixed" ? question.mode : "en-vi",
+      answers: Array.isArray(question.answers) ? question.answers : []
+    }));
   }
 
   function setProgress(answered) {
@@ -288,12 +438,154 @@ document.addEventListener("DOMContentLoaded", () => {
     progressBar.parentElement.setAttribute("aria-valuenow", String(percentage));
   }
 
-  function updateStats(answered) {
-    const wrongCount = Math.max(0, answered - correctCount);
+  function updateStats() {
+    const answered = correctCount + wrongCount;
     const accuracy = answered ? Math.round((correctCount / answered) * 100) : 0;
     correctLabel.textContent = correctCount;
     wrongLabel.textContent = wrongCount;
     accuracyLabel.textContent = `${accuracy}%`;
+  }
+
+  function resetQuestionUi() {
+    questionCard.classList.remove("answer-state-correct", "answer-state-wrong", "is-sentence-question", "is-listening-question", "is-matching-question");
+    questionCard.querySelector(".practice-answer-fx")?.remove();
+    feedback.classList.add("d-none");
+    feedback.classList.remove("is-correct", "is-wrong");
+    feedbackPronunciation.classList.add("d-none");
+    exampleLabel.classList.add("d-none");
+    answers.classList.add("d-none");
+    answers.innerHTML = "";
+    typingForm.classList.add("d-none");
+    typingInput.value = "";
+    typingInput.disabled = false;
+    typingSubmit.disabled = false;
+    typingInput.classList.remove("is-invalid", "is-correct", "is-wrong");
+    listenButton.classList.add("d-none");
+    listenButton.classList.remove("is-speaking");
+    matchingBoard.classList.add("d-none");
+    matchingWords.innerHTML = "";
+    matchingMeanings.innerHTML = "";
+    matchingStatus.textContent = "Chọn một từ, sau đó chọn nghĩa tương ứng.";
+    nextButton.classList.add("d-none");
+    selectedMatchingWordId = "";
+    selectedMatchingMeaningId = "";
+    window.speechSynthesis?.cancel();
+  }
+
+  function setQuestionText(text, sentence = false) {
+    const displayText = String(text || "").trim();
+    wordLabel.textContent = displayText;
+    wordLabel.classList.toggle("is-long", !sentence && displayText.length > 22 && displayText.length <= 34);
+    wordLabel.classList.toggle("is-very-long", !sentence && displayText.length > 34);
+    questionCard.classList.toggle("is-sentence-question", sentence);
+  }
+
+  function renderChoiceAnswers(question) {
+    answers.classList.remove("d-none");
+    answers.innerHTML = question.answers.map((answer, index) => `
+      <div class="col-md-6">
+        <button class="answer-btn" type="button" data-practice-answer="${index}">
+          <span class="answer-key">${String.fromCharCode(65 + index)}</span>
+          <span>${escapeHtml(answer)}</span>
+        </button>
+      </div>`).join("");
+  }
+
+  function canUseSpeechSynthesis() {
+    return "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+  }
+
+  function speakCurrentWord() {
+    const question = questions[currentIndex];
+    if (!question || question.mode !== "listening") return;
+    if (!canUseSpeechSynthesis()) {
+      VB.toast("Trình duyệt này chưa hỗ trợ phát âm tự động.", "warning");
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(question.word);
+    utterance.lang = "en-US";
+    utterance.rate = 0.82;
+    utterance.pitch = 1;
+    utterance.onstart = () => listenButton.classList.add("is-speaking");
+    utterance.onend = () => listenButton.classList.remove("is-speaking");
+    utterance.onerror = () => listenButton.classList.remove("is-speaking");
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function renderStandardQuestion(question) {
+    categoryLabel.textContent = question.category;
+    if (question.mode === "en-vi") {
+      promptLabel.textContent = "Chọn nghĩa tiếng Việt đúng";
+      setQuestionText(question.word);
+      renderChoiceAnswers(question);
+    } else if (question.mode === "vi-en") {
+      promptLabel.textContent = "Chọn từ tiếng Anh phù hợp";
+      setQuestionText(question.meaning, true);
+      renderChoiceAnswers(question);
+    } else if (question.mode === "typing") {
+      promptLabel.textContent = "Nhập từ tiếng Anh phù hợp với nghĩa";
+      setQuestionText(question.meaning, true);
+      typingForm.classList.remove("d-none");
+      requestAnimationFrame(() => typingInput.focus({ preventScroll: true }));
+    } else if (question.mode === "fill-blank") {
+      promptLabel.textContent = "Điền từ còn thiếu vào câu";
+      categoryLabel.textContent = question.clozeLabel || question.category;
+      setQuestionText(question.clozeSentence, true);
+      typingForm.classList.remove("d-none");
+      requestAnimationFrame(() => typingInput.focus({ preventScroll: true }));
+    } else if (question.mode === "listening") {
+      promptLabel.textContent = "Nghe phát âm và chọn từ đúng";
+      categoryLabel.textContent = "English listening";
+      setQuestionText("Bạn nghe thấy từ nào?", true);
+      questionCard.classList.add("is-listening-question");
+      listenButton.classList.remove("d-none");
+      renderChoiceAnswers(question);
+      speakCurrentWord();
+    }
+  }
+
+  function currentMatchingBatch() {
+    return questions.slice(currentIndex, currentIndex + 5);
+  }
+
+  function ensureMatchingOrder(batch) {
+    const batchIds = new Set(batch.map(question => question.id));
+    const orderIsValid = matchingMeaningOrder.length === batch.length
+      && matchingMeaningOrder.every(id => batchIds.has(id));
+    if (!orderIsValid) matchingMeaningOrder = shuffle(batch.map(question => question.id));
+  }
+
+  function renderMatchingQuestion() {
+    const batch = currentMatchingBatch();
+    ensureMatchingOrder(batch);
+    promptLabel.textContent = "Ghép từ với nghĩa tương ứng";
+    categoryLabel.textContent = `Nhóm ${Math.floor(currentIndex / 5) + 1}`;
+    setQuestionText(`Ghép ${batch.length} cặp từ`, true);
+    questionCard.classList.add("is-matching-question");
+    matchingBoard.classList.remove("d-none");
+    matchingStatus.textContent = matchingSolvedIds.size
+      ? `Đã ghép ${matchingSolvedIds.size}/${batch.length} cặp. Tiếp tục nhé!`
+      : "Chọn một từ, sau đó chọn nghĩa tương ứng.";
+
+    matchingWords.innerHTML = batch.map(question => `
+      <button class="practice-match-item${matchingSolvedIds.has(question.id) ? " is-matched" : ""}" type="button" data-match-word="${escapeHtml(question.id)}" ${matchingSolvedIds.has(question.id) ? "disabled" : ""}>
+        <i class="bi bi-alphabet-uppercase"></i><span>${escapeHtml(question.word)}</span>
+      </button>`).join("");
+    matchingMeanings.innerHTML = matchingMeaningOrder.map(id => {
+      const question = batch.find(item => item.id === id);
+      if (!question) return "";
+      return `
+        <button class="practice-match-item${matchingSolvedIds.has(question.id) ? " is-matched" : ""}" type="button" data-match-meaning="${escapeHtml(question.id)}" ${matchingSolvedIds.has(question.id) ? "disabled" : ""}>
+          <i class="bi bi-chat-left-text-fill"></i><span>${escapeHtml(question.meaning)}</span>
+        </button>`;
+    }).join("");
+
+    const answered = currentIndex + matchingSolvedIds.size;
+    roundLabel.textContent = `Cặp ${Math.min(answered + 1, questions.length)}/${questions.length}`;
+    setProgress(answered);
+    updateStats();
+    saveProgress(currentIndex, answered);
   }
 
   function renderQuestion() {
@@ -303,67 +595,42 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     locked = false;
+    matchingLocked = false;
+    awaitingMatchingAdvance = false;
+    resetQuestionUi();
     const question = questions[currentIndex];
     levelBadge.textContent = activeSet.badge;
-    roundLabel.textContent = `Từ ${currentIndex + 1}/${questions.length}`;
-    const displayWord = String(question.word || "").trim();
-    wordLabel.textContent = displayWord;
-    wordLabel.classList.toggle("is-long", displayWord.length > 22 && displayWord.length <= 34);
-    wordLabel.classList.toggle("is-very-long", displayWord.length > 34);
-    categoryLabel.textContent = question.category;
-    questionCard.classList.remove("answer-state-correct", "answer-state-wrong");
-    questionCard.querySelector(".practice-answer-fx")?.remove();
-    feedback.classList.add("d-none");
-    feedback.classList.remove("is-correct", "is-wrong");
-    nextButton.classList.add("d-none");
+    modeBadge.textContent = modeLabel(activeMode);
     nextButton.innerHTML = currentIndex === questions.length - 1
       ? 'Xem kết quả <i class="bi bi-flag-fill ms-1"></i>'
       : 'Từ tiếp theo <i class="bi bi-arrow-right ms-1"></i>';
 
-    answers.innerHTML = question.answers.map((answer, index) => `
-      <div class="col-md-6">
-        <button class="answer-btn" type="button" data-practice-answer="${index}">
-          <span class="answer-key">${String.fromCharCode(65 + index)}</span>
-          <span>${escapeHtml(answer)}</span>
-        </button>
-      </div>`).join("");
-
-    setProgress(currentIndex);
-    updateStats(currentIndex);
-  }
-
-  function resolveAnswer(selectedIndex) {
-    if (locked || session.classList.contains("d-none")) return;
-    locked = true;
-    const question = questions[currentIndex];
-    const buttons = [...answers.querySelectorAll("[data-practice-answer]")];
-    const isCorrect = selectedIndex === question.correct;
-    questionCard.classList.add(isCorrect ? "answer-state-correct" : "answer-state-wrong");
-    VB.playAnswerEffect(questionCard, buttons[selectedIndex], isCorrect);
-
-    buttons.forEach(button => {
-      button.disabled = true;
-      const answerIndex = Number(button.dataset.practiceAnswer);
-      if (answerIndex === question.correct) button.classList.add("correct");
-      if (answerIndex === selectedIndex && !isCorrect) button.classList.add("wrong");
-    });
-
-    if (isCorrect) {
-      correctCount += 1;
-      feedback.classList.add("is-correct");
-      feedbackHeading.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Chính xác!';
-    } else {
-      mistakes.push({
-        word: question.word,
-        meaning: question.meaning,
-        selected: question.answers[selectedIndex],
-        usage: question.example || question.collocation,
-        usageLabel: question.example ? "Ví dụ" : "Collocation"
-      });
-      feedback.classList.add("is-wrong");
-      feedbackHeading.innerHTML = '<i class="bi bi-lightbulb-fill me-2"></i>Ghi nhớ đáp án đúng';
+    if (activeMode === "matching") {
+      renderMatchingQuestion();
+      return;
     }
 
+    roundLabel.textContent = `Từ ${currentIndex + 1}/${questions.length}`;
+    renderStandardQuestion(question);
+    setProgress(currentIndex);
+    updateStats();
+  }
+
+  function addMistake(question, selected) {
+    mistakes.push({
+      word: question.word,
+      meaning: question.meaning,
+      selected: selected || "Không nhập đáp án",
+      usage: question.example || question.collocation,
+      usageLabel: question.example ? "Ví dụ" : "Collocation"
+    });
+  }
+
+  function showQuestionFeedback(question, isCorrect) {
+    feedback.classList.add(isCorrect ? "is-correct" : "is-wrong");
+    feedbackHeading.innerHTML = isCorrect
+      ? '<i class="bi bi-check-circle-fill me-2"></i>Chính xác!'
+      : '<i class="bi bi-lightbulb-fill me-2"></i>Ghi nhớ đáp án đúng';
     const usage = question.example || question.collocation;
     const usageLabel = question.example ? "Ví dụ" : "Collocation";
     feedbackWord.textContent = question.word;
@@ -373,32 +640,171 @@ document.addEventListener("DOMContentLoaded", () => {
     exampleLabel.textContent = usage ? `${usageLabel}: ${usage}` : "";
     exampleLabel.classList.toggle("d-none", !usage);
     feedback.classList.remove("d-none");
+  }
+
+  function completeStandardQuestion(isCorrect, selectedText, effectTarget) {
+    const question = questions[currentIndex];
+    locked = true;
+    window.speechSynthesis?.cancel();
+    questionCard.classList.add(isCorrect ? "answer-state-correct" : "answer-state-wrong");
+    VB.playAnswerEffect(questionCard, effectTarget, isCorrect);
+    if (isCorrect) {
+      correctCount += 1;
+    } else {
+      wrongCount += 1;
+      addMistake(question, selectedText);
+    }
+    showQuestionFeedback(question, isCorrect);
     nextButton.classList.remove("d-none");
     setProgress(currentIndex + 1);
-    updateStats(currentIndex + 1);
-    saveProgress(currentIndex + 1);
+    updateStats();
+    saveProgress(currentIndex + 1, currentIndex + 1);
     nextButton.focus({ preventScroll: true });
   }
 
-  function startPractice(type, key) {
-    const practiceSet = getPracticeSet(type, key);
-    if (!practiceSet || practiceSet.words.length < 4) {
-      VB.toast("Bộ từ này chưa đủ dữ liệu để tạo bài luyện.", "warning");
+  function resolveChoice(selectedIndex) {
+    if (locked || session.classList.contains("d-none")) return;
+    const question = questions[currentIndex];
+    if (!question?.answers?.length || selectedIndex < 0 || selectedIndex >= question.answers.length) return;
+    const buttons = [...answers.querySelectorAll("[data-practice-answer]")];
+    const isCorrect = selectedIndex === question.correct;
+    buttons.forEach(button => {
+      button.disabled = true;
+      const answerIndex = Number(button.dataset.practiceAnswer);
+      if (answerIndex === question.correct) button.classList.add("correct");
+      if (answerIndex === selectedIndex && !isCorrect) button.classList.add("wrong");
+    });
+    completeStandardQuestion(isCorrect, question.answers[selectedIndex], buttons[selectedIndex]);
+  }
+
+  function resolveTypedAnswer() {
+    if (locked || session.classList.contains("d-none")) return;
+    const question = questions[currentIndex];
+    if (!question || !["typing", "fill-blank"].includes(question.mode)) return;
+    const typed = typingInput.value.trim();
+    if (!typed) {
+      typingInput.classList.add("is-invalid");
+      typingInput.focus();
+      return;
+    }
+    typingInput.classList.remove("is-invalid");
+    typingInput.disabled = true;
+    typingSubmit.disabled = true;
+    const isCorrect = normalizeAnswer(typed) === normalizeAnswer(question.word);
+    typingInput.classList.add(isCorrect ? "is-correct" : "is-wrong");
+    completeStandardQuestion(isCorrect, typed, typingSubmit);
+  }
+
+  function updateMatchingSelection() {
+    matchingWords.querySelectorAll("[data-match-word]").forEach(button => {
+      button.classList.toggle("is-selected", button.dataset.matchWord === selectedMatchingWordId);
+    });
+    matchingMeanings.querySelectorAll("[data-match-meaning]").forEach(button => {
+      button.classList.toggle("is-selected", button.dataset.matchMeaning === selectedMatchingMeaningId);
+    });
+  }
+
+  function resolveMatchingPair() {
+    if (!selectedMatchingWordId || !selectedMatchingMeaningId || matchingLocked) return;
+    matchingLocked = true;
+    const batch = currentMatchingBatch();
+    const question = batch.find(item => item.id === selectedMatchingWordId);
+    const wordButton = matchingWords.querySelector(`[data-match-word="${CSS.escape(selectedMatchingWordId)}"]`);
+    const meaningButton = matchingMeanings.querySelector(`[data-match-meaning="${CSS.escape(selectedMatchingMeaningId)}"]`);
+    const isCorrect = selectedMatchingWordId === selectedMatchingMeaningId;
+    questionCard.classList.add(isCorrect ? "answer-state-correct" : "answer-state-wrong");
+    VB.playAnswerEffect(questionCard, meaningButton, isCorrect);
+
+    if (!isCorrect) {
+      wordButton?.classList.add("is-wrong");
+      meaningButton?.classList.add("is-wrong");
+      matchingStatus.textContent = "Chưa đúng — thử ghép lại cặp này nhé.";
+      if (question && !matchingFailedIds.has(question.id)) {
+        matchingFailedIds.add(question.id);
+        addMistake(question, meaningButton?.textContent.trim() || "Ghép sai nghĩa");
+      }
+      window.setTimeout(() => {
+        wordButton?.classList.remove("is-wrong");
+        meaningButton?.classList.remove("is-wrong");
+        questionCard.classList.remove("answer-state-wrong");
+        selectedMatchingWordId = "";
+        selectedMatchingMeaningId = "";
+        matchingLocked = false;
+        updateMatchingSelection();
+        saveProgress(currentIndex, currentIndex + matchingSolvedIds.size);
+      }, 650);
       return;
     }
 
+    wordButton?.classList.add("is-correct");
+    meaningButton?.classList.add("is-correct");
+    matchingSolvedIds.add(question.id);
+    if (matchingFailedIds.has(question.id)) wrongCount += 1;
+    else correctCount += 1;
+    matchingStatus.textContent = `${question.word} — ${question.meaning}`;
+    setProgress(currentIndex + matchingSolvedIds.size);
+    updateStats();
+
+    window.setTimeout(() => {
+      questionCard.classList.remove("answer-state-correct");
+      selectedMatchingWordId = "";
+      selectedMatchingMeaningId = "";
+      matchingLocked = false;
+      if (matchingSolvedIds.size === batch.length) {
+        currentIndex += batch.length;
+        matchingSolvedIds = new Set();
+        matchingFailedIds = new Set();
+        matchingMeaningOrder = [];
+        awaitingMatchingAdvance = true;
+        locked = true;
+        matchingStatus.textContent = currentIndex >= questions.length
+          ? "Bạn đã ghép xong toàn bộ từ!"
+          : "Hoàn thành nhóm này! Sẵn sàng cho 5 cặp tiếp theo.";
+        nextButton.innerHTML = currentIndex >= questions.length
+          ? 'Xem kết quả <i class="bi bi-flag-fill ms-1"></i>'
+          : '5 cặp tiếp theo <i class="bi bi-arrow-right ms-1"></i>';
+        nextButton.classList.remove("d-none");
+        setProgress(currentIndex);
+        saveProgress(currentIndex, currentIndex);
+        nextButton.focus({ preventScroll: true });
+      } else {
+        renderMatchingQuestion();
+      }
+    }, 520);
+  }
+
+  function startPractice(type, key, mode = selectedMode) {
+    const practiceSet = getPracticeSet(type, key);
+    const availableWords = wordsAvailableForMode(practiceSet, mode);
+    if (!practiceSet || availableWords.length < 4) {
+      VB.toast(mode === "fill-blank"
+        ? "Bộ này chưa đủ câu ví dụ chứa chính xác từ cần điền."
+        : "Bộ từ này chưa đủ dữ liệu để tạo bài luyện.", "warning");
+      return;
+    }
+
+    activeMode = practiceModes[mode] ? mode : "mixed";
+    selectedMode = activeMode;
+    localStorage.setItem(modeStorageKey, activeMode);
+    updateModeSelection();
     activeSet = practiceSet;
-    questions = buildQuestions(practiceSet);
+    questions = buildQuestions(practiceSet, activeMode);
     currentIndex = 0;
     correctCount = 0;
+    wrongCount = 0;
     mistakes = [];
+    matchingSolvedIds = new Set();
+    matchingFailedIds = new Set();
+    matchingMeaningOrder = [];
+    awaitingMatchingAdvance = false;
     intro.classList.add("d-none");
+    modeSection.classList.add("d-none");
     levelSection.classList.add("d-none");
     result.classList.add("d-none");
     session.classList.remove("d-none");
     resumeSection.classList.add("d-none");
     window.scrollTo({ top: 0, behavior: "smooth" });
-    saveProgress(0);
+    saveProgress(0, 0);
     renderQuestion();
   }
 
@@ -411,26 +817,40 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const restoredSet = getPracticeSet(saved.activeSet.type, saved.activeSet.key);
     activeSet = restoredSet ? { ...restoredSet, title: saved.activeSet.title, badge: saved.activeSet.badge } : saved.activeSet;
-    questions = saved.questions;
-    currentIndex = saved.currentIndex;
+    activeMode = practiceModes[saved.mode] ? saved.mode : "en-vi";
+    selectedMode = activeMode;
+    localStorage.setItem(modeStorageKey, selectedMode);
+    updateModeSelection();
+    questions = normalizeSavedQuestions(saved.questions);
+    currentIndex = Number(saved.currentIndex) || 0;
     correctCount = Number(saved.correctCount) || 0;
+    wrongCount = Number(saved.wrongCount);
+    if (!Number.isFinite(wrongCount)) wrongCount = Math.max(0, currentIndex - correctCount);
     mistakes = Array.isArray(saved.mistakes) ? saved.mistakes : [];
+    matchingSolvedIds = new Set(saved.matching?.solvedIds || []);
+    matchingFailedIds = new Set(saved.matching?.failedIds || []);
+    matchingMeaningOrder = Array.isArray(saved.matching?.meaningOrder) ? saved.matching.meaningOrder : [];
     locked = false;
+    awaitingMatchingAdvance = false;
     intro.classList.add("d-none");
+    modeSection.classList.add("d-none");
     levelSection.classList.add("d-none");
     result.classList.add("d-none");
     resumeSection.classList.add("d-none");
     session.classList.remove("d-none");
     window.scrollTo({ top: 0, behavior: "smooth" });
     renderQuestion();
-    VB.toast(`Tiếp tục ${activeSet.title} tại câu ${Math.min(currentIndex + 1, questions.length)}/${questions.length}.`, "info");
+    const answered = Math.min(Number(saved.answeredCount ?? currentIndex) || 0, questions.length);
+    VB.toast(`Tiếp tục ${activeSet.title} tại ${answered}/${questions.length} · ${modeLabel(activeMode)}.`, "info");
   }
 
   function showSetSelection() {
     locked = true;
+    window.speechSynthesis?.cancel();
     session.classList.add("d-none");
     result.classList.add("d-none");
     intro.classList.remove("d-none");
+    modeSection.classList.remove("d-none");
     levelSection.classList.remove("d-none");
     renderLevelCards();
     renderTopicCards();
@@ -440,19 +860,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function finishPractice() {
     locked = true;
+    window.speechSynthesis?.cancel();
     session.classList.add("d-none");
     result.classList.remove("d-none");
     const total = questions.length;
     const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
     const bestScores = getBestScores();
-    const key = scoreKey(activeSet.type, activeSet.key);
-    const best = Math.max(Math.min(bestScore(bestScores, activeSet.type, activeSet.key), total), correctCount);
+    const key = scoreKey(activeSet.type, activeSet.key, activeMode);
+    const best = Math.max(Math.min(bestScore(bestScores, activeSet.type, activeSet.key, activeMode), total), correctCount);
     bestScores[key] = best;
     localStorage.setItem("vb_practice_best_v1", JSON.stringify(bestScores));
     clearProgress();
 
-    document.querySelector("#practiceResultLevel").textContent = `Hoàn thành ${activeSet.title}`;
-    document.querySelector("#practiceResultCopy").textContent = `Bạn đã luyện đủ ${total} từ trong bộ ${activeSet.title} và trả lời đúng ${correctCount} từ.`;
+    document.querySelector("#practiceResultLevel").textContent = `Hoàn thành ${activeSet.title} · ${modeLabel(activeMode)}`;
+    document.querySelector("#practiceResultCopy").textContent = `Bạn đã hoàn thành ${total} câu trong bộ ${activeSet.title} và trả lời đúng ${correctCount} câu.`;
     document.querySelector("#resultCorrect").textContent = `${correctCount}/${total}`;
     document.querySelector("#resultAccuracy").textContent = `${accuracy}%`;
     document.querySelector("#resultBest").textContent = `${best}/${total}`;
@@ -463,7 +884,7 @@ document.addEventListener("DOMContentLoaded", () => {
     mistakeList.innerHTML = mistakes.map(item => `
       <div class="practice-mistake-item">
         <div><strong>${escapeHtml(item.word)}</strong><span>${escapeHtml(item.meaning)}</span></div>
-        <small>Bạn chọn: ${escapeHtml(item.selected)}</small>
+        <small>Đáp án của bạn: ${escapeHtml(item.selected)}</small>
         ${item.usage ? `<small class="practice-mistake-example">${escapeHtml(item.usageLabel)}: ${escapeHtml(item.usage)}</small>` : ""}
       </div>`).join("");
 
@@ -472,23 +893,50 @@ document.addEventListener("DOMContentLoaded", () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  modeSection.addEventListener("click", event => {
+    const button = event.target.closest("[data-practice-mode]");
+    if (button) setSelectedMode(button.dataset.practiceMode);
+  });
+
   levelGrid.addEventListener("click", event => {
     const button = event.target.closest("[data-practice-level]");
-    if (button) startPractice("level", button.dataset.practiceLevel);
+    if (button && !button.disabled) startPractice("level", button.dataset.practiceLevel);
   });
 
   topicGrid.addEventListener("click", event => {
     const button = event.target.closest("[data-practice-topic]");
-    if (button) startPractice("topic", button.dataset.practiceTopic);
+    if (button && !button.disabled) startPractice("topic", button.dataset.practiceTopic);
   });
 
   answers.addEventListener("click", event => {
     const button = event.target.closest("[data-practice-answer]");
-    if (button) resolveAnswer(Number(button.dataset.practiceAnswer));
+    if (button) resolveChoice(Number(button.dataset.practiceAnswer));
+  });
+
+  typingForm.addEventListener("submit", event => {
+    event.preventDefault();
+    resolveTypedAnswer();
+  });
+  typingInput.addEventListener("input", () => typingInput.classList.remove("is-invalid"));
+  listenButton.addEventListener("click", speakCurrentWord);
+
+  matchingBoard.addEventListener("click", event => {
+    if (matchingLocked || awaitingMatchingAdvance) return;
+    const wordButton = event.target.closest("[data-match-word]");
+    const meaningButton = event.target.closest("[data-match-meaning]");
+    if (wordButton && !wordButton.disabled) selectedMatchingWordId = wordButton.dataset.matchWord;
+    if (meaningButton && !meaningButton.disabled) selectedMatchingMeaningId = meaningButton.dataset.matchMeaning;
+    updateMatchingSelection();
+    resolveMatchingPair();
   });
 
   nextButton.addEventListener("click", () => {
     if (!locked) return;
+    if (activeMode === "matching" && awaitingMatchingAdvance) {
+      awaitingMatchingAdvance = false;
+      renderQuestion();
+      return;
+    }
     currentIndex += 1;
     renderQuestion();
   });
@@ -501,20 +949,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.querySelector("#leavePractice").addEventListener("click", showSetSelection);
   document.querySelector("#chooseAnotherLevel").addEventListener("click", showSetSelection);
-  document.querySelector("#practiceAgain").addEventListener("click", () => startPractice(activeSet.type, activeSet.key));
+  document.querySelector("#practiceAgain").addEventListener("click", () => startPractice(activeSet.type, activeSet.key, activeMode));
 
   document.addEventListener("keydown", event => {
     if (session.classList.contains("d-none")) return;
-    if (locked && event.key === "Enter") {
+    if (locked && event.key === "Enter" && !nextButton.classList.contains("d-none")) {
       event.preventDefault();
       nextButton.click();
       return;
     }
-    if (locked) return;
+    if (locked || activeMode === "matching" || ["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)) return;
+    const question = questions[currentIndex];
     const answerIndex = ["a", "b", "c", "d"].indexOf(event.key.toLowerCase());
-    if (answerIndex >= 0 && answerIndex < questions[currentIndex].answers.length) resolveAnswer(answerIndex);
+    if (answerIndex >= 0 && answerIndex < (question?.answers?.length || 0)) resolveChoice(answerIndex);
   });
 
+  updateModeSelection();
   renderLevelCards();
   renderTopicCards();
   renderResumeCard();

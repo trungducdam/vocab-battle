@@ -67,6 +67,8 @@ Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằn
 - Chọn một trong sáu bậc A1, A2, B1, B2, C1 hoặc C2.
 - Luyện toàn bộ từ đang có trong bậc đã chọn; dữ liệu chuẩn hóa hiện có 487 mục C1 và 85 mục C2.
 - Chọn riêng một trong **26 chủ đề IELTS**, mỗi chủ đề có 40 từ hoặc cụm từ.
+- Bảy lựa chọn luyện: **Hỗn hợp**, Anh → Việt, Việt → Anh, nhập từ bằng bàn phím, điền từ vào câu, nghe và chọn, cùng bài ghép từ với nghĩa theo nhóm 5 cặp.
+- Dạng nghe dùng `SpeechSynthesis API` của trình duyệt và có nút phát lại; dạng điền từ chỉ sử dụng những câu ví dụ chứa đúng từ cần luyện.
 - Đáp án nhiễu ưu tiên nghĩa cùng loại từ, cùng chủ đề và có độ dài gần nhau để tăng độ khó.
 - Từ/cụm từ tự điều chỉnh cỡ chữ theo độ dài; đáp án đúng và sai có hiệu ứng phản hồi riêng, đồng thời tôn trọng cài đặt giảm chuyển động của thiết bị.
 - Sau khi trả lời, thẻ phản hồi hiển thị IPA UK/US và liên kết tra cứu Cambridge; phiên âm không xuất hiện trong trận đấu.
@@ -77,7 +79,7 @@ Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằn
 - Theo dõi số câu đúng, sai, độ chính xác và tiến độ của phiên.
 - Tự động lưu bộ từ, thứ tự câu, vị trí hiện tại, số câu đúng/sai, danh sách trả lời sai và thời điểm cập nhật.
 - Có thể quay lại bằng thẻ **Continue [tên bộ] — x/y** hoặc chủ động xóa phiên đang dở.
-- Lưu điểm tốt nhất theo từng bậc trên trình duyệt và liệt kê các từ cần ôn lại.
+- Lưu điểm tốt nhất riêng theo từng bộ và dạng bài trên trình duyệt, đồng thời liệt kê các từ cần ôn lại.
 
 ### Tài khoản và phân quyền
 
