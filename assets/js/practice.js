@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "vi-en": { label: "Việt → Anh", icon: "bi-arrow-left-right" },
     typing: { label: "Nhập từ", icon: "bi-keyboard-fill" },
     "fill-blank": { label: "Điền vào câu", icon: "bi-input-cursor-text" },
-    listening: { label: "Nghe & chọn", icon: "bi-volume-up-fill" },
+    listening: { label: "Nghe & điền", icon: "bi-volume-up-fill" },
     matching: { label: "Ghép cặp", icon: "bi-intersect" }
   };
   const mixedModeCycle = ["en-vi", "vi-en", "typing", "listening", "fill-blank"];
@@ -405,7 +405,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return question;
     }
 
-    if (questionMode === "typing" || questionMode === "matching") return question;
+    if (["typing", "listening", "matching"].includes(questionMode)) return question;
 
     const field = questionMode === "en-vi" ? "meaning" : "word";
     const options = shuffle([
@@ -457,6 +457,7 @@ document.addEventListener("DOMContentLoaded", () => {
     answers.innerHTML = "";
     typingForm.classList.add("d-none");
     typingInput.value = "";
+    typingInput.placeholder = "Nhập từ tiếng Anh...";
     typingInput.disabled = false;
     typingSubmit.disabled = false;
     typingInput.classList.remove("is-invalid", "is-correct", "is-wrong");
@@ -535,13 +536,15 @@ document.addEventListener("DOMContentLoaded", () => {
       typingForm.classList.remove("d-none");
       requestAnimationFrame(() => typingInput.focus({ preventScroll: true }));
     } else if (question.mode === "listening") {
-      promptLabel.textContent = "Nghe phát âm và chọn từ đúng";
+      promptLabel.textContent = "Nghe phát âm và điền từ bạn nghe được";
       categoryLabel.textContent = "English listening";
-      setQuestionText("Bạn nghe thấy từ nào?", true);
+      setQuestionText("Nghe kỹ và nhập lại từ", true);
       questionCard.classList.add("is-listening-question");
       listenButton.classList.remove("d-none");
-      renderChoiceAnswers(question);
+      typingInput.placeholder = "Nhập từ bạn nghe được...";
+      typingForm.classList.remove("d-none");
       speakCurrentWord();
+      requestAnimationFrame(() => typingInput.focus({ preventScroll: true }));
     }
   }
 
@@ -680,7 +683,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function resolveTypedAnswer() {
     if (locked || session.classList.contains("d-none")) return;
     const question = questions[currentIndex];
-    if (!question || !["typing", "fill-blank"].includes(question.mode)) return;
+    if (!question || !["typing", "fill-blank", "listening"].includes(question.mode)) return;
     const typed = typingInput.value.trim();
     if (!typed) {
       typingInput.classList.add("is-invalid");
