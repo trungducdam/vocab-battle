@@ -1251,7 +1251,7 @@ a { color: inherit; }
 
 .practice-mode-options {
   display: grid;
-  grid-template-columns: repeat(7, minmax(128px, 1fr));
+  grid-template-columns: repeat(4, minmax(145px, 1fr));
   gap: .65rem;
   padding: .2rem;
   overflow-x: auto;
@@ -1688,6 +1688,23 @@ a { color: inherit; }
 
 .practice-listen-button.is-speaking i {
   animation: practice-listening-pulse .7s ease-in-out infinite alternate;
+}
+
+.practice-typing-hint {
+  width: fit-content;
+  max-width: 100%;
+  margin: -.55rem auto 1.35rem;
+  padding: .65rem 1rem;
+  overflow-wrap: anywhere;
+  color: #67e8f9;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: clamp(1.05rem, 2.3vw, 1.4rem);
+  font-weight: 800;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  border: 1px solid rgba(34,211,238,.2);
+  border-radius: 14px;
+  background: rgba(34,211,238,.07);
 }
 
 .practice-typing-form {
@@ -2272,7 +2289,7 @@ a { color: inherit; }
   .practice-level-grid { grid-template-columns: 1fr; }
   .practice-mode-heading { align-items: flex-start; flex-direction: column; }
   .practice-mode-heading > p { text-align: left; }
-  .practice-mode-options { grid-template-columns: repeat(7, 122px); }
+  .practice-mode-options { grid-template-columns: repeat(4, 132px); }
   .practice-mode-option { min-height: 72px; }
   .practice-resume-card { align-items: flex-start; flex-direction: column; }
   .practice-section-heading { align-items: flex-start; flex-direction: column; }

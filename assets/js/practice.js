@@ -10,14 +10,11 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const practiceModes = {
     mixed: { label: "Hỗn hợp", icon: "bi-shuffle" },
-    "en-vi": { label: "Anh → Việt", icon: "bi-translate" },
-    "vi-en": { label: "Việt → Anh", icon: "bi-arrow-left-right" },
     typing: { label: "Nhập từ", icon: "bi-keyboard-fill" },
-    "fill-blank": { label: "Điền vào câu", icon: "bi-input-cursor-text" },
     listening: { label: "Nghe & điền", icon: "bi-volume-up-fill" },
     matching: { label: "Ghép cặp", icon: "bi-intersect" }
   };
-  const mixedModeCycle = ["en-vi", "vi-en", "typing", "listening", "fill-blank"];
+  const mixedModeCycle = ["typing", "listening"];
   const progressStorageKey = "vb_practice_progress_v1";
   const modeStorageKey = "vb_practice_mode_v1";
 
@@ -31,7 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const levelSection = document.querySelector("#practiceLevelSection");
   const session = document.querySelector("#practiceSession");
   const result = document.querySelector("#practiceResult");
-  const answers = document.querySelector("#practiceAnswers");
   const questionCard = document.querySelector(".practice-question-card");
   const promptLabel = document.querySelector("#practicePromptLabel");
   const wordLabel = document.querySelector("#practiceWord");
@@ -45,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const accuracyLabel = document.querySelector("#practiceAccuracy");
   const listenButton = document.querySelector("#practiceListenButton");
   const typingForm = document.querySelector("#practiceTypingForm");
+  const typingHint = document.querySelector("#practiceTypingHint");
   const typingInput = document.querySelector("#practiceTypingInput");
   const typingSubmit = document.querySelector("#practiceTypingSubmit");
   const matchingBoard = document.querySelector("#practiceMatchingBoard");
@@ -163,7 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function modeLabel(mode) {
-    return practiceModes[mode]?.label || practiceModes["en-vi"].label;
+    return practiceModes[mode]?.label || practiceModes.typing.label;
   }
 
   function scoreKey(type, key, mode = selectedMode) {
@@ -172,13 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function bestScore(bestScores, type, key, mode = selectedMode) {
     const current = bestScores[scoreKey(type, key, mode)];
-    if (current !== undefined) return Number(current || 0);
-    if (mode === "en-vi") {
-      const legacy = bestScores[`${type}:${key}`];
-      if (legacy !== undefined) return Number(legacy || 0);
-      return type === "level" ? Number(bestScores[key] || 0) : 0;
-    }
-    return 0;
+    return current === undefined ? 0 : Number(current || 0);
   }
 
   function normalizeAnswer(value) {
@@ -190,37 +181,11 @@ document.addEventListener("DOMContentLoaded", () => {
       .trim();
   }
 
-  function createCloze(entry) {
-    const word = String(entry.word || "").trim();
-    if (!word) return null;
-    const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const pattern = new RegExp(`(^|[^A-Za-z])(${escapedWord})(?=$|[^A-Za-z])`, "i");
-    const sources = [
-      { text: entry.example, label: "Ví dụ" },
-      { text: entry.collocation, label: "Collocation" }
-    ];
-    for (const source of sources) {
-      const sourceText = String(source.text || "").trim();
-      if (!sourceText || !pattern.test(sourceText)) continue;
-      return {
-        sentence: sourceText.replace(pattern, (_match, prefix) => `${prefix}_____`),
-        original: sourceText,
-        label: source.label
-      };
-    }
-    return null;
-  }
-
-  function wordsAvailableForMode(practiceSet, mode = selectedMode) {
-    if (!practiceSet) return [];
-    if (mode === "fill-blank") return practiceSet.words.filter(entry => createCloze(entry));
-    return practiceSet.words;
-  }
-
   function getSavedProgress() {
     try {
       const saved = JSON.parse(localStorage.getItem(progressStorageKey) || "null");
       if (!saved || !saved.activeSet || !Array.isArray(saved.questions) || saved.questions.length < 4) return null;
+      if (!practiceModes[saved.mode]) return null;
       const current = Number(saved.currentIndex);
       if (!Number.isInteger(current) || current < 0 || current > saved.questions.length) return null;
       return saved;
@@ -270,7 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!saved) return;
     const answered = Math.min(Number(saved.answeredCount ?? saved.currentIndex) || 0, saved.questions.length);
     const updated = saved.updatedAt ? new Date(saved.updatedAt) : null;
-    const savedMode = practiceModes[saved.mode] ? saved.mode : "en-vi";
+    const savedMode = practiceModes[saved.mode] ? saved.mode : "typing";
     resumeTitle.textContent = `Continue ${saved.activeSet.title} — ${answered}/${saved.questions.length}`;
     resumeMeta.textContent = `${modeLabel(savedMode)} · ${saved.correctCount || 0} đúng · ${saved.wrongCount || 0} sai${updated && !Number.isNaN(updated.getTime()) ? ` · Cập nhật ${updated.toLocaleString("vi-VN")}` : ""}`;
   }
@@ -296,20 +261,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const bestScores = getBestScores();
     levelGrid.innerHTML = levels.map(level => {
       const practiceSet = getPracticeSet("level", level);
-      const count = wordsAvailableForMode(practiceSet).length;
+      const count = practiceSet.words.length;
       const best = Math.min(bestScore(bestScores, "level", level), count);
       const detail = levelDetails[level];
       const unavailable = count < 4;
-      const countCopy = selectedMode === "fill-blank" ? `${count} câu có ví dụ` : `${count} từ`;
       return `
-        <button class="practice-level-card${unavailable ? " is-unavailable" : ""}" type="button" data-practice-level="${level}" ${unavailable ? "disabled" : ""} aria-label="${unavailable ? `Bậc ${level} chưa đủ câu ví dụ cho dạng điền từ` : `Luyện ${count} từ bậc ${level} bằng dạng ${modeLabel(selectedMode)}`}">
+        <button class="practice-level-card${unavailable ? " is-unavailable" : ""}" type="button" data-practice-level="${level}" ${unavailable ? "disabled" : ""} aria-label="Luyện ${count} từ bậc ${level} bằng dạng ${modeLabel(selectedMode)}">
           <span class="practice-level-icon"><i class="bi ${detail.icon}"></i></span>
           <span class="practice-level-code">${level}</span>
           <strong>${detail.title}</strong>
-          <span class="practice-level-description">${unavailable ? "Chưa đủ câu ví dụ chứa từ cần điền." : detail.description}</span>
+          <span class="practice-level-description">${detail.description}</span>
           <span class="practice-level-footer">
-            <span><i class="bi bi-collection me-1"></i>${countCopy}</span>
-            <span>${best ? `Tốt nhất ${best}/${count}` : unavailable ? "Chưa khả dụng" : "Chưa luyện"}</span>
+            <span><i class="bi bi-collection me-1"></i>${count} từ</span>
+            <span>${best ? `Tốt nhất ${best}/${count}` : "Chưa luyện"}</span>
           </span>
         </button>`;
     }).join("");
@@ -319,115 +283,60 @@ document.addEventListener("DOMContentLoaded", () => {
     const bestScores = getBestScores();
     topicGrid.innerHTML = topics.map(topic => {
       const practiceSet = getPracticeSet("topic", topic.key);
-      const count = wordsAvailableForMode(practiceSet).length;
+      const count = practiceSet.words.length;
       const best = Math.min(bestScore(bestScores, "topic", topic.key), count);
       const unavailable = count < 4;
-      const countCopy = selectedMode === "fill-blank" ? `${count} câu có ví dụ` : `${count} từ`;
       return `
-        <button class="practice-topic-card${unavailable ? " is-unavailable" : ""}" type="button" data-practice-topic="${topic.key}" ${unavailable ? "disabled" : ""} aria-label="${unavailable ? `Chủ đề ${escapeHtml(topic.name)} chưa đủ câu ví dụ cho dạng điền từ` : `Luyện ${count} từ chủ đề ${escapeHtml(topic.name)} bằng dạng ${modeLabel(selectedMode)}`}">
+        <button class="practice-topic-card${unavailable ? " is-unavailable" : ""}" type="button" data-practice-topic="${topic.key}" ${unavailable ? "disabled" : ""} aria-label="Luyện ${count} từ chủ đề ${escapeHtml(topic.name)} bằng dạng ${modeLabel(selectedMode)}">
           <span class="practice-topic-number">${String(topic.number).padStart(2, "0")}</span>
           <span class="practice-topic-icon"><i class="bi ${topic.icon}"></i></span>
           <span class="practice-topic-copy">
             <strong>${escapeHtml(topic.name)}</strong>
-            <span>${countCopy} · ${best ? `Tốt nhất ${best}/${count}` : unavailable ? "Chưa khả dụng" : "Chưa luyện"}</span>
+            <span>${count} từ · ${best ? `Tốt nhất ${best}/${count}` : "Chưa luyện"}</span>
           </span>
           <i class="bi bi-arrow-right-short practice-topic-arrow" aria-hidden="true"></i>
         </button>`;
     }).join("");
   }
 
-  function uniqueDistractors(entry, setWords, field) {
-    const selected = [];
-    const targetValue = normalizeAnswer(entry[field]);
-    const usedValues = new Set([targetValue]);
-    const entryWord = normalizeAnswer(entry.word);
-    const entryCategory = normalizeAnswer(entry.category || entry.partOfSpeech);
-    const targetLength = String(entry[field] || "").trim().length;
-    const candidateMap = new Map();
-    [...setWords, ...publicWords].forEach(candidate => {
-      const key = candidate.sourceKey || candidate.id || `${candidate.level}|${candidate.word}|${candidate.meaning}`;
-      if (candidate !== entry && !candidateMap.has(String(key))) candidateMap.set(String(key), candidate);
-    });
-
-    const candidates = [...candidateMap.values()];
-    const categoryOf = candidate => normalizeAnswer(candidate.category || candidate.partOfSpeech);
-    const hasSimilarLength = candidate => Math.abs(targetLength - String(candidate[field] || "").trim().length) <= 12;
-    const entryTopicKeys = new Set(entry.topicKeys || [entry.topicKey].filter(Boolean));
-    const sameTopic = candidate => (candidate.topicKeys || [candidate.topicKey].filter(Boolean)).some(key => entryTopicKeys.has(key));
-    const sameCategory = candidate => Boolean(entryCategory && categoryOf(candidate) === entryCategory);
-    const priorityPredicates = [
-      candidate => sameTopic(candidate) && sameCategory(candidate) && hasSimilarLength(candidate),
-      candidate => sameTopic(candidate) && sameCategory(candidate),
-      sameTopic,
-      candidate => candidate.level === entry.level && sameCategory(candidate) && hasSimilarLength(candidate),
-      candidate => candidate.level === entry.level && sameCategory(candidate),
-      sameCategory,
-      () => true
-    ];
-
-    for (const predicate of priorityPredicates) {
-      for (const candidate of shuffle(candidates.filter(predicate))) {
-        const candidateWord = normalizeAnswer(candidate.word);
-        const candidateValue = normalizeAnswer(candidate[field]);
-        if (!candidateValue || candidateWord === entryWord || usedValues.has(candidateValue)) continue;
-        usedValues.add(candidateValue);
-        selected.push(candidate[field]);
-        if (selected.length === 3) return selected;
-      }
-    }
-    return selected;
+  function isHintCharacter(character) {
+    return /[\p{L}\p{N}]/u.test(character);
   }
 
-  function modeForMixedQuestion(entry, index) {
-    const compatible = mixedModeCycle.filter(mode => mode !== "fill-blank" || createCloze(entry));
-    return compatible[index % compatible.length];
+  function createTypingHint(term) {
+    return String(term || "")
+      .trim()
+      .split(/\s+/)
+      .map(part => [...part].map(character => isHintCharacter(character) ? "_" : character).join(" "))
+      .join("   ");
   }
 
-  function buildQuestion(entry, mode, setWords, index) {
-    const questionMode = mode === "mixed" ? modeForMixedQuestion(entry, index) : mode;
-    const question = {
+  function modeForMixedQuestion(index) {
+    return mixedModeCycle[index % mixedModeCycle.length];
+  }
+
+  function buildQuestion(entry, mode, index) {
+    const questionMode = mode === "mixed" ? modeForMixedQuestion(index) : mode;
+    return {
       id: `${index}-${entry.sourceKey || entry.id || `${entry.level}|${entry.word}|${entry.meaning}`}`,
       mode: questionMode,
       word: entry.word,
       meaning: entry.meaning,
       example: entry.example || "",
       collocation: entry.collocation || "",
-      category: entry.category || entry.partOfSpeech || "Từ vựng",
-      answers: [],
-      correct: -1
+      category: entry.category || entry.partOfSpeech || "Từ vựng"
     };
-
-    if (questionMode === "fill-blank") {
-      const cloze = createCloze(entry);
-      question.clozeSentence = cloze?.sentence || "";
-      question.clozeSource = cloze?.original || "";
-      question.clozeLabel = cloze?.label || "Ví dụ";
-      return question;
-    }
-
-    if (["typing", "listening", "matching"].includes(questionMode)) return question;
-
-    const field = questionMode === "en-vi" ? "meaning" : "word";
-    const options = shuffle([
-      { text: entry[field], correct: true },
-      ...uniqueDistractors(entry, setWords, field).map(value => ({ text: value, correct: false }))
-    ]);
-    question.answers = options.map(option => option.text);
-    question.correct = options.findIndex(option => option.correct);
-    return question;
   }
 
   function buildQuestions(practiceSet, mode) {
-    const availableWords = wordsAvailableForMode(practiceSet, mode);
-    return shuffle(availableWords).map((entry, index) => buildQuestion(entry, mode, availableWords, index));
+    return shuffle(practiceSet.words).map((entry, index) => buildQuestion(entry, mode, index));
   }
 
   function normalizeSavedQuestions(savedQuestions) {
     return savedQuestions.map((question, index) => ({
       ...question,
       id: question.id || `${index}-${question.word}|${question.meaning}`,
-      mode: practiceModes[question.mode] && question.mode !== "mixed" ? question.mode : "en-vi",
-      answers: Array.isArray(question.answers) ? question.answers : []
+      mode: ["typing", "listening", "matching"].includes(question.mode) ? question.mode : "typing"
     }));
   }
 
@@ -453,9 +362,9 @@ document.addEventListener("DOMContentLoaded", () => {
     feedback.classList.remove("is-correct", "is-wrong");
     feedbackPronunciation.classList.add("d-none");
     exampleLabel.classList.add("d-none");
-    answers.classList.add("d-none");
-    answers.innerHTML = "";
     typingForm.classList.add("d-none");
+    typingHint.classList.add("d-none");
+    typingHint.textContent = "";
     typingInput.value = "";
     typingInput.placeholder = "Nhập từ tiếng Anh...";
     typingInput.disabled = false;
@@ -479,17 +388,6 @@ document.addEventListener("DOMContentLoaded", () => {
     wordLabel.classList.toggle("is-long", !sentence && displayText.length > 22 && displayText.length <= 34);
     wordLabel.classList.toggle("is-very-long", !sentence && displayText.length > 34);
     questionCard.classList.toggle("is-sentence-question", sentence);
-  }
-
-  function renderChoiceAnswers(question) {
-    answers.classList.remove("d-none");
-    answers.innerHTML = question.answers.map((answer, index) => `
-      <div class="col-md-6">
-        <button class="answer-btn" type="button" data-practice-answer="${index}">
-          <span class="answer-key">${String.fromCharCode(65 + index)}</span>
-          <span>${escapeHtml(answer)}</span>
-        </button>
-      </div>`).join("");
   }
 
   function canUseSpeechSynthesis() {
@@ -516,23 +414,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderStandardQuestion(question) {
     categoryLabel.textContent = question.category;
-    if (question.mode === "en-vi") {
-      promptLabel.textContent = "Chọn nghĩa tiếng Việt đúng";
-      setQuestionText(question.word);
-      renderChoiceAnswers(question);
-    } else if (question.mode === "vi-en") {
-      promptLabel.textContent = "Chọn từ tiếng Anh phù hợp";
-      setQuestionText(question.meaning, true);
-      renderChoiceAnswers(question);
-    } else if (question.mode === "typing") {
+    if (question.mode === "typing") {
       promptLabel.textContent = "Nhập từ tiếng Anh phù hợp với nghĩa";
       setQuestionText(question.meaning, true);
-      typingForm.classList.remove("d-none");
-      requestAnimationFrame(() => typingInput.focus({ preventScroll: true }));
-    } else if (question.mode === "fill-blank") {
-      promptLabel.textContent = "Điền từ còn thiếu vào câu";
-      categoryLabel.textContent = question.clozeLabel || question.category;
-      setQuestionText(question.clozeSentence, true);
+      typingHint.textContent = createTypingHint(question.word);
+      const characterCount = [...String(question.word || "")].filter(isHintCharacter).length;
+      typingHint.setAttribute("aria-label", `Từ cần nhập có ${characterCount} ký tự`);
+      typingHint.classList.remove("d-none");
       typingForm.classList.remove("d-none");
       requestAnimationFrame(() => typingInput.focus({ preventScroll: true }));
     } else if (question.mode === "listening") {
@@ -665,25 +553,10 @@ document.addEventListener("DOMContentLoaded", () => {
     nextButton.focus({ preventScroll: true });
   }
 
-  function resolveChoice(selectedIndex) {
-    if (locked || session.classList.contains("d-none")) return;
-    const question = questions[currentIndex];
-    if (!question?.answers?.length || selectedIndex < 0 || selectedIndex >= question.answers.length) return;
-    const buttons = [...answers.querySelectorAll("[data-practice-answer]")];
-    const isCorrect = selectedIndex === question.correct;
-    buttons.forEach(button => {
-      button.disabled = true;
-      const answerIndex = Number(button.dataset.practiceAnswer);
-      if (answerIndex === question.correct) button.classList.add("correct");
-      if (answerIndex === selectedIndex && !isCorrect) button.classList.add("wrong");
-    });
-    completeStandardQuestion(isCorrect, question.answers[selectedIndex], buttons[selectedIndex]);
-  }
-
   function resolveTypedAnswer() {
     if (locked || session.classList.contains("d-none")) return;
     const question = questions[currentIndex];
-    if (!question || !["typing", "fill-blank", "listening"].includes(question.mode)) return;
+    if (!question || !["typing", "listening"].includes(question.mode)) return;
     const typed = typingInput.value.trim();
     if (!typed) {
       typingInput.classList.add("is-invalid");
@@ -778,11 +651,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function startPractice(type, key, mode = selectedMode) {
     const practiceSet = getPracticeSet(type, key);
-    const availableWords = wordsAvailableForMode(practiceSet, mode);
-    if (!practiceSet || availableWords.length < 4) {
-      VB.toast(mode === "fill-blank"
-        ? "Bộ này chưa đủ câu ví dụ chứa chính xác từ cần điền."
-        : "Bộ từ này chưa đủ dữ liệu để tạo bài luyện.", "warning");
+    if (!practiceSet || practiceSet.words.length < 4) {
+      VB.toast("Bộ từ này chưa đủ dữ liệu để tạo bài luyện.", "warning");
       return;
     }
 
@@ -820,7 +690,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const restoredSet = getPracticeSet(saved.activeSet.type, saved.activeSet.key);
     activeSet = restoredSet ? { ...restoredSet, title: saved.activeSet.title, badge: saved.activeSet.badge } : saved.activeSet;
-    activeMode = practiceModes[saved.mode] ? saved.mode : "en-vi";
+    activeMode = practiceModes[saved.mode] ? saved.mode : "typing";
     selectedMode = activeMode;
     localStorage.setItem(modeStorageKey, selectedMode);
     updateModeSelection();
@@ -911,11 +781,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (button && !button.disabled) startPractice("topic", button.dataset.practiceTopic);
   });
 
-  answers.addEventListener("click", event => {
-    const button = event.target.closest("[data-practice-answer]");
-    if (button) resolveChoice(Number(button.dataset.practiceAnswer));
-  });
-
   typingForm.addEventListener("submit", event => {
     event.preventDefault();
     resolveTypedAnswer();
@@ -961,10 +826,6 @@ document.addEventListener("DOMContentLoaded", () => {
       nextButton.click();
       return;
     }
-    if (locked || activeMode === "matching" || ["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)) return;
-    const question = questions[currentIndex];
-    const answerIndex = ["a", "b", "c", "d"].indexOf(event.key.toLowerCase());
-    if (answerIndex >= 0 && answerIndex < (question?.answers?.length || 0)) resolveChoice(answerIndex);
   });
 
   updateModeSelection();

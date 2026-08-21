@@ -61,17 +61,8 @@
             <button class="practice-mode-option is-active" type="button" data-practice-mode="mixed" role="radio" aria-checked="true">
               <i class="bi bi-shuffle"></i><span>Hỗn hợp</span>
             </button>
-            <button class="practice-mode-option" type="button" data-practice-mode="en-vi" role="radio" aria-checked="false">
-              <i class="bi bi-translate"></i><span>Anh → Việt</span>
-            </button>
-            <button class="practice-mode-option" type="button" data-practice-mode="vi-en" role="radio" aria-checked="false">
-              <i class="bi bi-arrow-left-right"></i><span>Việt → Anh</span>
-            </button>
             <button class="practice-mode-option" type="button" data-practice-mode="typing" role="radio" aria-checked="false">
               <i class="bi bi-keyboard-fill"></i><span>Nhập từ</span>
-            </button>
-            <button class="practice-mode-option" type="button" data-practice-mode="fill-blank" role="radio" aria-checked="false">
-              <i class="bi bi-input-cursor-text"></i><span>Điền vào câu</span>
             </button>
             <button class="practice-mode-option" type="button" data-practice-mode="listening" role="radio" aria-checked="false">
               <i class="bi bi-volume-up-fill"></i><span>Nghe &amp; điền</span>
@@ -126,13 +117,13 @@
         </div>
 
         <section class="question-card practice-question-card text-center mx-auto" aria-labelledby="practiceWord">
-          <p class="text-muted-vb text-uppercase fw-bold mb-0" id="practicePromptLabel">Chọn nghĩa đúng của từ</p>
+          <p class="text-muted-vb text-uppercase fw-bold mb-0" id="practicePromptLabel">Nhập từ tiếng Anh phù hợp với nghĩa</p>
           <div class="practice-word-meta mt-3"><span id="practiceCategory">Danh từ</span></div>
-          <h2 class="battle-word" id="practiceWord">APPLE</h2>
+          <h2 class="battle-word" id="practiceWord">quả táo</h2>
+          <p class="practice-typing-hint d-none" id="practiceTypingHint" aria-label="Gợi ý số ký tự"></p>
           <button class="practice-listen-button d-none" id="practiceListenButton" type="button" aria-label="Nghe lại từ tiếng Anh">
             <i class="bi bi-volume-up-fill"></i><span>Nghe lại</span>
           </button>
-          <div class="row g-3" id="practiceAnswers"></div>
 
           <form class="practice-typing-form d-none" id="practiceTypingForm" autocomplete="off">
             <label class="visually-hidden" for="practiceTypingInput">Nhập đáp án tiếng Anh</label>
