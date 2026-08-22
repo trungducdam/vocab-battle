@@ -91,6 +91,14 @@ Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằn
 - Hỗ trợ avatar tài khoản xã hội trong hồ sơ.
 - Tài khoản mới có Elo, số trận và tỷ lệ thắng mặc định bằng `0`.
 
+### Chuỗi ngày học và lịch hoạt động
+
+- Tự động ghi nhận hoạt động khi hoàn thành câu luyện tập hoặc kết thúc trận đấu.
+- Tính **chuỗi ngày hiện tại**, **chuỗi dài nhất** và tổng số ngày đã học.
+- Lịch heatmap 365 ngày theo phong cách GitHub với năm mức độ hoạt động.
+- Di chuột vào từng ô để xem ngày và số lượt học tương ứng.
+- Toàn bộ lịch sử hoạt động được lưu bằng `localStorage` trong phiên bản frontend demo.
+
 ### Giao diện và trải nghiệm
 
 - Responsive trên desktop, tablet và điện thoại.
@@ -111,7 +119,7 @@ Phiên bản hiện tại đã hoàn thành phần **frontend responsive** bằn
 | JavaScript ES6+ | State, tương tác, gameplay và phân quyền demo |
 | Bootstrap 5 | Grid, modal, navbar và component giao diện |
 | Bootstrap Icons | Hệ thống icon |
-| LocalStorage | Lưu tài khoản, kho từ, điểm luyện và phiên luyện đang dở |
+| LocalStorage | Lưu tài khoản, kho từ, điểm luyện, phiên đang dở và lịch hoạt động học tập |
 | SessionStorage | Lưu cấu hình và thứ tự câu hỏi của trận demo hiện tại |
 | Mammoth.js | Đọc nội dung file DOCX |
 | PDF.js | Trích xuất văn bản từ file PDF |
@@ -163,7 +171,7 @@ OTP demo: 123456
 8. Tạo trận public hoặc phòng private.
 9. Bắt đầu trận đấu mô phỏng, quan sát bot chọn đáp án và trả lời bằng chuột hoặc bàn phím.
 10. Hoàn thành đủ số câu để nhận kết quả dựa trên HP cuối trận.
-11. Xem hồ sơ và bảng xếp hạng sau trận.
+11. Xem chuỗi ngày học, lịch heatmap 365 ngày và thành tích trong hồ sơ.
 
 ## Cấu trúc thư mục
 
@@ -185,8 +193,9 @@ vocab-battle-frontend/
     ├── css/
     │   └── main.css
     └── js/
-        ├── app.js              # Layout, toast và chuyển trang
+        ├── app.js              # Layout, chuyển trang và lịch sử hoạt động
         ├── auth.js             # Authentication demo
+        ├── profile.js          # Hồ sơ, chuỗi ngày học và heatmap 365 ngày
         ├── home.js             # Thiết lập trận từ trang chủ
         ├── battle-config.js    # Cấu hình số câu, HP và độ khó bot
         ├── room.js             # Logic phòng chờ

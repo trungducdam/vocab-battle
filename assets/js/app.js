@@ -86,6 +86,102 @@ const VB = {
     this.renderLayout();
   },
 
+  learningActivityKey: "vb_learning_activity_v1",
+
+  getLocalDateKey(date = new Date()) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  },
+
+  getLearningActivity() {
+    const emptyActivity = { version: 1, days: {} };
+
+    try {
+      const stored = JSON.parse(localStorage.getItem(this.learningActivityKey) || "null");
+      const sourceDays = stored?.days || (stored && typeof stored === "object" ? stored : {});
+      const days = {};
+
+      Object.entries(sourceDays).forEach(([dateKey, value]) => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return;
+        const legacyTotal = typeof value === "number" ? value : value?.total;
+        const practice = Math.max(0, Math.floor(Number(typeof value === "number" ? value : value?.practice) || 0));
+        const battle = Math.max(0, Math.floor(Number(typeof value === "number" ? 0 : value?.battle) || 0));
+        const total = Math.max(practice + battle, Math.floor(Number(legacyTotal) || 0));
+        if (total > 0) days[dateKey] = { total, practice, battle };
+      });
+
+      return { version: 1, days };
+    } catch {
+      return emptyActivity;
+    }
+  },
+
+  recordLearningActivity(type = "practice", amount = 1, date = new Date()) {
+    const activity = this.getLearningActivity();
+    const dateKey = this.getLocalDateKey(date);
+    const activityType = type === "battle" ? "battle" : "practice";
+    const safeAmount = Math.max(1, Math.floor(Number(amount) || 1));
+    const current = activity.days[dateKey] || { total: 0, practice: 0, battle: 0 };
+
+    current[activityType] += safeAmount;
+    current.total = current.practice + current.battle;
+    activity.days[dateKey] = current;
+    localStorage.setItem(this.learningActivityKey, JSON.stringify(activity));
+    return this.getLearningStats(activity, date);
+  },
+
+  getLearningStats(activity = this.getLearningActivity(), today = new Date()) {
+    const activeDays = Object.entries(activity?.days || {})
+      .filter(([, value]) => Number(value?.total || 0) > 0)
+      .map(([dateKey]) => dateKey)
+      .sort();
+    const activeDaySet = new Set(activeDays);
+    const parseDate = dateKey => {
+      const [year, month, day] = dateKey.split("-").map(Number);
+      return new Date(year, month - 1, day, 12);
+    };
+    const shiftDate = (date, offset) => {
+      const shifted = new Date(date);
+      shifted.setDate(shifted.getDate() + offset);
+      return shifted;
+    };
+
+    let longestStreak = 0;
+    let streakRun = 0;
+    let previousDate = null;
+    activeDays.forEach(dateKey => {
+      const currentDate = parseDate(dateKey);
+      const isConsecutive = previousDate
+        && Math.round((currentDate - previousDate) / 86400000) === 1;
+      streakRun = isConsecutive ? streakRun + 1 : 1;
+      longestStreak = Math.max(longestStreak, streakRun);
+      previousDate = currentDate;
+    });
+
+    const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12);
+    let streakCursor = activeDaySet.has(this.getLocalDateKey(normalizedToday))
+      ? normalizedToday
+      : shiftDate(normalizedToday, -1);
+    let currentStreak = 0;
+    while (activeDaySet.has(this.getLocalDateKey(streakCursor))) {
+      currentStreak += 1;
+      streakCursor = shiftDate(streakCursor, -1);
+    }
+
+    const totalActivities = Object.values(activity?.days || {})
+      .reduce((sum, day) => sum + Math.max(0, Number(day?.total || 0)), 0);
+
+    return {
+      currentStreak,
+      longestStreak,
+      activeDays: activeDays.length,
+      totalActivities,
+      todayActivities: Number(activity?.days?.[this.getLocalDateKey(normalizedToday)]?.total || 0)
+    };
+  },
+
   navigate(href, message) {
     VBPageTransition.navigate(href, message);
   },

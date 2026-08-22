@@ -1,40 +1,111 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Hồ sơ | Vocab Battle - Game từ vựng tiếng Anh 1v1</title>
   <link rel="icon" type="image/jpeg" href="assets/images/pororo.jpg">
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet"><link href="assets/css/main.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="assets/css/main.css" rel="stylesheet">
 </head>
 <body data-page="profile">
   <header id="siteNav"></header>
-  <main class="site-main profile-page py-5"><div class="container"><div class="row g-4 align-items-start">
-    <div class="col-lg-4"><section class="glass-card profile-summary-card p-0 overflow-hidden"><div class="profile-banner"></div><div class="text-center px-4 pb-4"><div class="profile-avatar-wrap"><div class="avatar avatar-lg mx-auto border-4" id="profileInitial">YOU</div></div><h2 class="h4 mt-3 mb-1" id="profileName">Người chơi</h2><p class="text-muted-vb" id="profileEmail">player@example.com</p><span class="badge badge-soft-primary rounded-pill px-3 py-2" id="profileRole">User</span><hr class="border-secondary my-4"><div class="row"><div class="col"><strong class="d-block fs-4" id="profileElo">0</strong><small class="text-muted-vb">Elo</small></div><div class="col border-start border-secondary"><strong class="d-block fs-4" id="profileMatches">0</strong><small class="text-muted-vb">Trận</small></div><div class="col border-start border-secondary"><strong class="d-block fs-4" id="profileWinRate">0%</strong><small class="text-muted-vb">Thắng</small></div></div></div></section></div>
-    <div class="col-lg-8">
-      <div class="profile-content-stack">
-        <section class="glass-card"><div class="d-flex justify-content-between align-items-center mb-4"><div><h3 class="h4 mb-1">Thông tin cá nhân</h3><p class="text-muted-vb mb-0">Cập nhật hồ sơ hiển thị trong đấu trường.</p></div><i class="bi bi-person-gear fs-2 text-info"></i></div><form id="profileForm"><div class="row g-3"><div class="col-md-6"><label class="form-label" for="displayName">Tên hiển thị</label><input class="form-control" id="displayName" required></div><div class="col-md-6"><label class="form-label" for="profileEmailInput">Email</label><input class="form-control" id="profileEmailInput" type="email" disabled></div><div class="col-12"><label class="form-label" for="bio">Giới thiệu</label><textarea class="form-control" id="bio" rows="3" placeholder="Chia sẻ mục tiêu học tập của bạn..."></textarea></div><div class="col-12 text-end"><button class="btn btn-vb rounded-pill px-4" type="submit">Lưu thay đổi</button></div></div></form></section>
-        <section class="glass-card"><h3 class="h4">Thành tích gần đây</h3><div class="rank-row"><div class="feature-icon mb-0"><i class="bi bi-fire"></i></div><div class="flex-grow-1"><strong>Chuỗi 5 ngày</strong><div class="small text-muted-vb">Học và thi đấu liên tục</div></div><span class="badge badge-soft-warning">+100 XP</span></div><div class="rank-row"><div class="feature-icon mb-0"><i class="bi bi-trophy"></i></div><div class="flex-grow-1"><strong>First Victory</strong><div class="small text-muted-vb">Giành chiến thắng đầu tiên</div></div><span class="badge badge-soft-success">Đã mở khóa</span></div></section>
+
+  <main class="site-main profile-page py-5">
+    <div class="container">
+      <div class="row g-4 align-items-start">
+        <div class="col-lg-4">
+          <section class="glass-card profile-summary-card p-0 overflow-hidden">
+            <div class="profile-banner"></div>
+            <div class="text-center px-4 pb-4">
+              <div class="profile-avatar-wrap">
+                <div class="avatar avatar-lg mx-auto border-4" id="profileInitial">YOU</div>
+              </div>
+              <h2 class="h4 mt-3 mb-1" id="profileName">Người chơi</h2>
+              <p class="text-muted-vb" id="profileEmail">player@example.com</p>
+              <span class="badge badge-soft-primary rounded-pill px-3 py-2" id="profileRole">User</span>
+              <hr class="border-secondary my-4">
+              <div class="row">
+                <div class="col"><strong class="d-block fs-4" id="profileElo">0</strong><small class="text-muted-vb">Elo</small></div>
+                <div class="col border-start border-secondary"><strong class="d-block fs-4" id="profileMatches">0</strong><small class="text-muted-vb">Trận</small></div>
+                <div class="col border-start border-secondary"><strong class="d-block fs-4" id="profileWinRate">0%</strong><small class="text-muted-vb">Thắng</small></div>
+              </div>
+              <div class="profile-streak-panel mt-4">
+                <div class="profile-streak-icon" aria-hidden="true"><i class="bi bi-fire"></i></div>
+                <div class="profile-streak-stat"><strong id="profileCurrentStreak">0 ngày</strong><span>Chuỗi hiện tại</span></div>
+                <div class="profile-streak-divider"></div>
+                <div class="profile-streak-stat"><strong id="profileLongestStreak">0 ngày</strong><span>Kỷ lục</span></div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="col-lg-8">
+          <div class="profile-content-stack">
+            <section class="glass-card">
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <div><h3 class="h4 mb-1">Thông tin cá nhân</h3><p class="text-muted-vb mb-0">Cập nhật hồ sơ hiển thị trong đấu trường.</p></div>
+                <i class="bi bi-person-gear fs-2 text-info"></i>
+              </div>
+              <form id="profileForm">
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label" for="displayName">Tên hiển thị</label><input class="form-control" id="displayName" required></div>
+                  <div class="col-md-6"><label class="form-label" for="profileEmailInput">Email</label><input class="form-control" id="profileEmailInput" type="email" disabled></div>
+                  <div class="col-12"><label class="form-label" for="bio">Giới thiệu</label><textarea class="form-control" id="bio" rows="3" placeholder="Chia sẻ mục tiêu học tập của bạn..."></textarea></div>
+                  <div class="col-12 text-end"><button class="btn btn-vb rounded-pill px-4" type="submit">Lưu thay đổi</button></div>
+                </div>
+              </form>
+            </section>
+
+            <section class="glass-card learning-activity-card" aria-labelledby="learningActivityTitle">
+              <div class="learning-activity-heading">
+                <div><h3 class="h4 mb-1" id="learningActivityTitle">Lịch học tập</h3><p class="text-muted-vb mb-0" id="learningActivitySummary">Chưa có hoạt động học tập.</p></div>
+                <div class="learning-activity-badge"><i class="bi bi-calendar3"></i> 365 ngày</div>
+              </div>
+              <div class="learning-stats" aria-label="Thống kê học tập">
+                <div class="learning-stat"><span class="learning-stat-icon is-fire"><i class="bi bi-fire"></i></span><div><strong id="activityCurrentStreak">0</strong><span>Chuỗi hiện tại</span></div></div>
+                <div class="learning-stat"><span class="learning-stat-icon is-record"><i class="bi bi-lightning-charge-fill"></i></span><div><strong id="activityLongestStreak">0</strong><span>Chuỗi dài nhất</span></div></div>
+                <div class="learning-stat"><span class="learning-stat-icon is-days"><i class="bi bi-check2-circle"></i></span><div><strong id="activityActiveDays">0</strong><span>Tổng ngày học</span></div></div>
+              </div>
+              <div class="learning-heatmap-scroll" tabindex="0" aria-label="Lịch hoạt động học tập trong 365 ngày">
+                <div class="learning-heatmap-chart">
+                  <div class="learning-heatmap-months" id="learningHeatmapMonths" aria-hidden="true"></div>
+                  <div class="learning-heatmap-body">
+                    <div class="learning-heatmap-weekdays" aria-hidden="true"><span></span><span>T2</span><span></span><span>T4</span><span></span><span>T6</span><span></span></div>
+                    <div class="learning-heatmap" id="learningHeatmap" role="grid" aria-label="Mức độ học tập theo ngày"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="learning-heatmap-footer">
+                <span id="learningActivityUpdated">Hãy hoàn thành một câu luyện tập để bắt đầu chuỗi.</span>
+                <div class="learning-heatmap-legend" aria-label="Thang mức độ hoạt động"><span>Ít</span><i class="heatmap-cell level-0"></i><i class="heatmap-cell level-1"></i><i class="heatmap-cell level-2"></i><i class="heatmap-cell level-3"></i><i class="heatmap-cell level-4"></i><span>Nhiều</span></div>
+              </div>
+            </section>
+
+            <section class="glass-card">
+              <h3 class="h4">Thành tích gần đây</h3>
+              <div class="rank-row">
+                <div class="feature-icon mb-0"><i class="bi bi-fire"></i></div>
+                <div class="flex-grow-1"><strong id="streakAchievementTitle">Bắt đầu chuỗi học</strong><div class="small text-muted-vb" id="streakAchievementCopy">Hoàn thành một câu luyện tập hôm nay</div></div>
+                <span class="badge badge-soft-warning" id="streakAchievementBadge">0 ngày</span>
+              </div>
+              <div class="rank-row">
+                <div class="feature-icon mb-0"><i class="bi bi-trophy"></i></div>
+                <div class="flex-grow-1"><strong>First Victory</strong><div class="small text-muted-vb">Giành chiến thắng đầu tiên</div></div>
+                <span class="badge badge-soft-success" id="firstVictoryBadge">Chưa mở khóa</span>
+              </div>
+            </section>
+          </div>
+        </div>
       </div>
     </div>
-  </div></div></main><div id="siteFooter"></div>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script><script src="assets/js/app.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      if (!VB.requireLogin()) return;
-      const user = VB.getUser();
-      const profileName = document.querySelector('#profileName');
-      const profileEmail = document.querySelector('#profileEmail');
-      const profileInitial = document.querySelector('#profileInitial');
-      const displayName = document.querySelector('#displayName');
-      const profileEmailInput = document.querySelector('#profileEmailInput');
-      const profileForm = document.querySelector('#profileForm');
-      const profileElo = document.querySelector('#profileElo');
-      const profileMatches = document.querySelector('#profileMatches');
-      const profileWinRate = document.querySelector('#profileWinRate');
-      const profileRole = document.querySelector('#profileRole');
-      profileName.textContent = user.username; profileEmail.textContent = user.email; profileInitial.innerHTML = user.avatar ? `<img src="${user.avatar}" alt="Ảnh đại diện ${user.username}">` : user.username.slice(0,3).toUpperCase(); displayName.value = user.username; profileEmailInput.value = user.email; profileElo.textContent = user.elo ?? 0; profileMatches.textContent = user.matches ?? 0; profileWinRate.textContent = `${user.winRate ?? 0}%`; profileRole.textContent = user.role === 'Admin' ? 'Administrator' : 'User'; profileRole.className = `badge ${user.role === 'Admin' ? 'badge-soft-warning' : 'badge-soft-primary'} rounded-pill px-3 py-2`;
-      profileForm.addEventListener('submit', event => { event.preventDefault(); user.username = displayName.value.trim(); VB.setUser(user); profileName.textContent = user.username; if (!user.avatar) profileInitial.textContent = user.username.slice(0,3).toUpperCase(); VB.toast('Đã cập nhật hồ sơ', 'success'); });
-    });
-  </script>
+  </main>
+
+  <div id="siteFooter"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/profile.js"></script>
 </body>
 </html>

@@ -343,6 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const draw = comparison === 0;
     const won = comparison > 0;
+    VB.recordLearningActivity("battle", questions.length);
     const user = VB.getUser();
     if (user) {
       user.matches = (user.matches || 0) + 1;

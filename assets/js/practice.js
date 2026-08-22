@@ -545,6 +545,7 @@ document.addEventListener("DOMContentLoaded", () => {
       wrongCount += 1;
       addMistake(question, selectedText);
     }
+    VB.recordLearningActivity("practice");
     showQuestionFeedback(question, isCorrect);
     nextButton.classList.remove("d-none");
     setProgress(currentIndex + 1);
@@ -617,6 +618,7 @@ document.addEventListener("DOMContentLoaded", () => {
     matchingSolvedIds.add(question.id);
     if (matchingFailedIds.has(question.id)) wrongCount += 1;
     else correctCount += 1;
+    VB.recordLearningActivity("practice");
     matchingStatus.textContent = `${question.word} — ${question.meaning}`;
     setProgress(currentIndex + matchingSolvedIds.size);
     updateStats();
